@@ -7,7 +7,7 @@ import streamlit as st
 if "selected_users" not in st.session_state:
     st.session_state["selected_users"] = []
 
-# tier 숫자와 tier 이름으로 변환 함수 정의
+# tier 숫자로 변환 함수 정의
 def tier_to_num(tier):
     division = 1
     for char in tier[::-1]:
@@ -16,21 +16,88 @@ def tier_to_num(tier):
             break
     
     if tier.startswith("Bronze"):
-        return 10.0 - 2.0 * (division - 1), "Bronze"
+        return 2.0 - 0.2 * (division - 1)
     elif tier.startswith("Silver"):
-        return 20.0 - 2.0 * (division - 1), "Silver"
+        return 3.0 - 0.2 * (division - 1)
     elif tier.startswith("Gold"):
-        return 30.0 - 2.0 * (division - 1), "Gold"
+        return 4.0 - 0.2 * (division - 1)
     elif tier.startswith("Platinum"):
-        return 40.0 - 2.0 * (division - 1), "Platinum"
+        return 5.0 - 0.2 * (division - 1)
     elif tier.startswith("Diamond"):
-        return 50.0 - 2.0 * (division - 1), "Diamond"
+        return 6.0 - 0.2 * (division - 1)
     elif tier.startswith("Ruby"):
-        return 60.0 - 2.0 * (division - 1), "Ruby"
+        return 7.0 - 0.2 * (division - 1)
     elif tier == "Master":
-        return 70.0, "Master"
+        return 8.0
     else:
-        return 10.0, "Bronze 5"
+        return 1.2
+
+# 등급 범위에 따라 텍스트로 변환하는 함수
+def tier_avg_to_text(avg_tier):
+    if avg_tier <= 1.2:
+        return "Bronze 5"
+    elif 1.2 < avg_tier <= 1.4:
+        return "Bronze 4"
+    elif 1.4 < avg_tier <= 1.6:
+        return "Bronze 3"
+    elif 1.6 < avg_tier <= 1.8:
+        return "Bronze 2"
+    elif 1.8 < avg_tier <= 2.0:
+        return "Bronze 1"
+    elif 2.0 < avg_tier <= 2.2:
+        return "Silver 5"
+    elif 2.2 < avg_tier <= 2.4:
+        return "Silver 4"
+    elif 2.4 < avg_tier <= 2.6:
+        return "Silver 3"
+    elif 2.6 < avg_tier <= 2.8:
+        return "Silver 2"
+    elif 2.8 < avg_tier <= 3.0:
+        return "Silver 1"
+    elif 3.0 < avg_tier <= 3.2:
+        return "Gold 5"
+    elif 3.2 < avg_tier <= 3.4:
+        return "Gold 4"
+    elif 3.4 < avg_tier <= 3.6:
+        return "Gold 3"
+    elif 3.6 < avg_tier <= 3.8:
+        return "Gold 2"
+    elif 3.8 < avg_tier <= 4.0:
+        return "Gold 1"
+    elif 4.0 < avg_tier <= 4.2:
+        return "Platinum 5"
+    elif 4.2 < avg_tier <= 4.4:
+        return "Platinum 4"
+    elif 4.4 < avg_tier <= 4.6:
+        return "Platinum 3"
+    elif 4.6 < avg_tier <= 4.8:
+        return "Platinum 2"
+    elif 4.8 < avg_tier <= 5.0:
+        return "Platinum 1"
+    elif 5.0 < avg_tier <= 5.2:
+        return "Diamond 5"
+    elif 5.2 < avg_tier <= 5.4:
+        return "Diamond 4"
+    elif 5.4 < avg_tier <= 5.6:
+        return "Diamond 3"
+    elif 5.6 < avg_tier <= 5.8:
+        return "Diamond 2"
+    elif 5.8 < avg_tier <= 6.0:
+        return "Diamond 1"
+    elif 6.0 < avg_tier <= 6.2:
+        return "Ruby 5"
+    elif 6.2 < avg_tier <= 6.4:
+        return "Ruby 4"
+    elif 6.4 < avg_tier <= 6.6:
+        return "Ruby 3"
+    elif 6.6 < avg_tier <= 6.8:
+        return "Ruby 2"
+    elif 6.8 < avg_tier <= 7.0:
+        return "Ruby 1"
+    elif avg_tier > 7.0:
+        return "Master"
+    else:
+        return f"{avg_tier:.1f}"
 
 # 미리 정의된 CSV 파일을 데이터프레임으로 읽기
 csv_path = "/Users/thjeong/Desktop/BOAZ/adv/files/new_users_detail.csv"  
@@ -79,19 +146,26 @@ st.write("")
 st.write("")
 st.write("")
 
+# 팁 추가
+st.write("###💡 **Tips**")
+st.write("1. 수치는 유저의 **현재 백준 등급**을 나타내며, **Group Average**는 그룹의 백준 평균 티어를 나타냅니다.")
+st.write("2. 등급은 **Bronze**부터 **Master**등급까지 구성되어 있습니다.")
+st.write("3. 각 등급마다 **5**개의 구간으로 나누어집니다. (예: Silver 1 = 3.0 Silver 2 = 2.8 ... Silver 5 = 2.2를 나타냅니다.)")
+st.write("4. 백준 그룹 문제 추천 서비스는 **Silver 5**이상 등급부터 사용하는 것을 권장합니다.")
+st.write("5. 유저 아이디의 등급이 **Silver 5 미만**이거나 존재하지 않을 경우, **Bronze 5**로 적용됩니다.")
+
+st.write("")
+
 # 개인별 정보 소제목 추가 (왼쪽으로 정렬)
 st.markdown("""
     <div style="display: block; text-align: left; margin-left: 0px;">
-        <h3>Personal Status</h3>
+        <h3>⭐ Personal Status ⭐</h3>
     </div>
 """, unsafe_allow_html=True)
 
-st.write("")
-st.write("")
-
 # 등록된 유저 정보 표시
 if st.session_state["selected_users"]:
-    st.write("**등록된 그룹 유저 목록:**")
+    st.write("🔍 **조회하고 싶은 유저를 선택하고 개인 및 그룹의 백준 평균 등급을 확인하세요!!**")
     selected_users = st.multiselect("", st.session_state["selected_users"])
     
     if selected_users:
@@ -99,8 +173,12 @@ if st.session_state["selected_users"]:
         selected_user_info = user_df[user_df['user_id'].isin(selected_users)][['user_id', 'user_tier']]
 
         # 평균 티어 계산
-        average_tiers = [tier_to_num(tier)[0] for tier in selected_user_info['user_tier'].tolist()]
+        all_users = selected_users + list(selected_user_info[selected_user_info['user_id'].isin(selected_users) == False]['user_id'])
+        average_tiers = [tier_to_num(tier) for tier in selected_user_info['user_tier'].tolist()] + [1.2] * (len(all_users) - len(selected_user_info))
         average_tier = np.mean(average_tiers)
+
+        # 평균 티어를 텍스트로 변환
+        average_tier_text = tier_avg_to_text(average_tier)
 
         # 막대 그래프 생성
         fig, ax = plt.subplots(figsize=(12, 8))
@@ -108,26 +186,25 @@ if st.session_state["selected_users"]:
         # 선택된 각 사용자에 대한 막대 추가
         for user in selected_users:
             # 만약 데이터셋에 없는 경우 기본값으로 1.0 설정
-            user_tier_value, user_tier_name = tier_to_num(selected_user_info[selected_user_info['user_id'] == user]['user_tier'].values[0]) if user in selected_user_info['user_id'].values else (1.0, "Unknown")
-            ax.bar(user, user_tier_value, label=user)
-            # 각 막대 위에 숫자와 tier 표시
-            ax.text(user, user_tier_value + 0.1, f"{user_tier_value:.1f} ({user_tier_name})", ha='center', va='bottom')
+            user_tier = tier_to_num(selected_user_info[selected_user_info['user_id'] == user]['user_tier'].values[0]) if user in selected_user_info['user_id'].values else 1.2
+            ax.bar(user, user_tier, label=user)
+            # 각 막대 위에 숫자 표시
+            ax.text(user, user_tier + 0.1, f"{user_tier:.1f}", ha='center', va='bottom')
 
         # 그룹 평균 막대 추가
         ax.bar("Group Average", average_tier, color='gray', label='Group Average')
-        # 그룹 평균 위에 숫자와 tier 표시
-        ax.text("Group Average", average_tier + 0.1, f"{average_tier:.1f} (Group Average)", ha='center', va='bottom')
+        # 그룹 평균 위에 숫자 표시
+        ax.text("Group Average", average_tier + 0.1, f"{average_tier:.1f}", ha='center', va='bottom')
 
         ax.set_xlabel("User")
         ax.set_ylabel("Tier")
 
         # y-axis 범위 및 간격 설정
         ax.set_ylim(0.0, 10.0)
-        ax.set_yticks(np.arange(0.0, 10.1, 1.0))
+        ax.set_yticks(np.arange(0.0, 10.5, 0.5))
 
         plt.legend()
         st.pyplot(fig)
-    else:
-        st.warning("해당 유저는 존재하지 않습니다.")
-else:
-    st.warning("해당 유저는 존재하지 않습니다.")
+
+        # 텍스트로 변환된 등급 표시
+        st.write(f"<div style='text-align: center; font-size: xx-large;'><strong>해당 그룹의 백준 평균 등급은 <span style='color: red;'>{average_tier_text}</span>입니다.</strong></div>", unsafe_allow_html=True)
