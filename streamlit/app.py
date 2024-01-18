@@ -146,7 +146,7 @@ st.write("")
 st.write("")
 
 # 팁 추가
-st.write("###💡 **Tips**")
+st.write("### **💡 Tips**")
 st.write("1. 수치는 유저의 **현재 백준 등급**을 나타내며, **Group Average**는 그룹의 백준 평균 티어를 나타냅니다.")
 st.write("2. 등급은 **Bronze**부터 **Master**등급까지 구성되어 있습니다.")
 st.write("3. 각 등급마다 **5**개의 구간으로 나누어집니다. (예: Silver 1 = 3.0 Silver 2 = 2.8 ... Silver 5 = 2.2를 나타냅니다.)")
@@ -162,11 +162,25 @@ st.markdown("""
     </div>
 """, unsafe_allow_html=True)
 
+st.sidebar.write("")
+
 # 등록된 유저 정보 표시, 선택된 유저들의 티어 정보 추출
 if st.session_state["selected_users"]:
+    unique_selected_users = list(set(st.session_state["selected_users"]))
+
     st.write("🔍 **조회하고 싶은 유저를 선택하고 개인 및 그룹의 백준 평균 등급을 확인하세요!!**")
-    selected_users = st.multiselect("", st.session_state["selected_users"])
-    
+    selected_users = st.multiselect("", unique_selected_users)
+
+    # 등록된 유저 리스트 표시
+    st.sidebar.write("### **등록된 유저 목록** 💻")
+    st.sidebar.write("유저 아이디 두 번 클릭 시 그룹에서 **제외**!!")
+
+    for user in st.session_state["selected_users"]:
+        delete_button_clicked = st.sidebar.button(f"{user}", key=f"delete_button_{user}")
+        if delete_button_clicked:
+            st.session_state["selected_users"].remove(user)
+            break  
+
     if selected_users:
         selected_user_info = user_df[user_df['user_id'].isin(selected_users)][['user_id', 'user_tier']]
 
@@ -178,28 +192,11 @@ if st.session_state["selected_users"]:
         # 평균 티어를 텍스트로 변환
         average_tier_text = tier_avg_to_text(average_tier)
 
-        # 막대 그래프 생성(시각화)
-        fig, ax = plt.subplots(figsize=(12, 8))
-
-        # 선택된 각 사용자에 대한 시각화, 만약 데이터셋에 없는 경우 기본값으로 1.0 설정, 막대 그래프 위에 숫자 표시
+        # 선택된 각 사용자에 대한 시각화, 만약 데이터셋에 없는 경우 기본값으로 1.2 설정
         for user in selected_users:
             user_tier = tier_to_num(selected_user_info[selected_user_info['user_id'] == user]['user_tier'].values[0]) if user in selected_user_info['user_id'].values else 1.2
-            ax.bar(user, user_tier, label=user)
-            ax.text(user, user_tier + 0.1, f"{user_tier:.1f}", ha='center', va='bottom')
 
-        # 그룹 평균 시각화 및 숫자 표시
-        ax.bar("Group Average", average_tier, color='gray', label='Group Average')
-        ax.text("Group Average", average_tier + 0.1, f"{average_tier:.1f}", ha='center', va='bottom')
-
-        ax.set_xlabel("User")
-        ax.set_ylabel("Tier")
-
-        # 그래프 범위 및 간격 설정
-        ax.set_ylim(0.0, 10.0)
-        ax.set_yticks(np.arange(0.0, 10.5, 0.5))
-
-        plt.legend()
-        st.pyplot(fig)
+        st.write("")
 
         # 텍스트로 변환된 등급 표시
         st.write(f"<div style='text-align: center; font-size: xx-large;'><strong>해당 그룹의 백준 평균 등급은 <span style='color: red;'>{average_tier_text}</span>입니다.</strong></div>", unsafe_allow_html=True)
