@@ -8,7 +8,7 @@ from matplotlib.patches import RegularPolygon
 if "selected_users" not in st.session_state:
     st.session_state["selected_users"] = []
 
-# tier 숫자로 변환 함수 정의
+# 등급을 숫자로 변환하는 함수
 def tier_to_num(tier):
     division = 1
     for char in tier[::-1]:
@@ -100,7 +100,6 @@ def tier_avg_to_text(avg_tier):
     else:
         return 1.2
 
-# CSV 파일 불러오기
 csv_path = "/Users/thjeong/Desktop/BOAZ/adv/files/new_users_detail.csv"  
 user_df = pd.read_csv(csv_path)
 
@@ -121,7 +120,7 @@ if user_search:
         st.sidebar.write("")
 
         # 사용자가 있을 때 분석 등록 버튼 추가
-        if st.sidebar.button("유저 등록", key=f"register_button_{user_search}"):
+        if st.sidebar.button("사용자 등록", key=f"register_button_{user_search}"):
             if user_search not in st.session_state["selected_users"]:
                 st.session_state["selected_users"].append(user_search)
 
@@ -133,7 +132,7 @@ if user_search:
         st.sidebar.write("")
 
         # 사용자가 없을 때 분석 등록 버튼 추가
-        if st.sidebar.button("유저 등록", key=f"register_button_{user_search}"):
+        if st.sidebar.button("사용자 등록", key=f"register_button_{user_search}"):
             selected_user = user_search
             if selected_user not in st.session_state["selected_users"]:
                 st.session_state["selected_users"].append(selected_user)
@@ -151,15 +150,14 @@ st.write("1. 백준 그룹 문제 추천 서비스 대시보드는 실제 백준
 st.write("2. 백준 등급은 **Bronze**부터 **Master**등급까지 구성되어 있습니다.")
 st.write("3. **Master** 등급을 제외한 각 등급마다 **5**개의 구간으로 나누어집니다. (예: Silver 1 ~ Silver 5)")
 st.write("4. 백준 그룹 문제 추천 서비스는 **Silver 5**이상 등급부터 사용하는 것을 권장합니다.")
-st.write("5. 유저 아이디의 등급이 **Silver 5 미만**이거나 존재하지 않을 경우, **Bronze 5**로 적용됩니다.")
-st.write("6. 그래프는 선택된 유저의 **현재 카테고리별 점수**를 나타내며, **Group Average**는 그룹의 평균 점수를 나타냅니다.")
-st.write("7. Silver 5 미만 유저의 경우 시각화가 제한되며, 그룹 카테고리 점수 평균에 따로 영향을 주지 않습니다.")
+st.write("5. 사용자 아이디의 등급이 **Silver 5 미만**이거나 존재하지 않을 경우, **Bronze 5**로 적용됩니다.")
+st.write("6. 그래프는 선택된 사용자의 **현재 카테고리별 점수**를 나타내며, **Group Average**는 그룹의 평균 점수를 나타냅니다.")
+st.write("7. Silver 5 미만 사용자의 경우 시각화가 제한되며, 그룹 카테고리 점수 평균에 따로 영향을 주지 않습니다.")
 
 st.write("")
 st.write("")
 st.write("")
 
-# Check Baekjoon Tier 추가
 st.markdown("""
     <div style="display: block; text-align: left; margin-left: 0px;">
         <h3>✔️ Check Baekjoon Tier</h3>
@@ -169,16 +167,16 @@ st.markdown("""
 st.sidebar.write("")
 st.sidebar.write("")
 
-# 등록된 유저 정보 표시, 선택된 유저들의 티어 정보 추출
+# 등록된 사용자 정보 표시, 선택된 사용자들의 등급 정보 추출
 if st.session_state["selected_users"]:
     unique_selected_users = list(set(st.session_state["selected_users"]))
 
-    st.write("🔍  **조회하고 싶은 유저를 선택하고 개인 및 그룹의 현재 백준 등급과 카테고리별 점수를 확인하세요!** 🔍")
+    st.write("🔍  **조회하고 싶은 사용자를 선택하고 개인 및 그룹의 현재 백준 등급과 카테고리별 점수를 확인하세요!** 🔍")
     selected_users = st.multiselect("", unique_selected_users)
 
-    # 등록된 유저 리스트 표시
-    st.sidebar.write("### **등록된 유저 목록** 💻")
-    st.sidebar.write("유저 아이디 두 번 클릭 시 그룹에서 **제외**")
+    # 등록된 사용자 리스트 표시
+    st.sidebar.write("### **등록된 사용자 목록** 💻")
+    st.sidebar.write("사용자 아이디 두 번 클릭 시 그룹에서 **제외**")
 
     for user in st.session_state["selected_users"]:
         delete_button_clicked = st.sidebar.button(f"{user}", key=f"delete_button_{user}")
@@ -189,7 +187,7 @@ if st.session_state["selected_users"]:
     if selected_users:
         selected_user_info = user_df[user_df['user_id'].isin(selected_users)][['user_id', 'user_tier', 'implement', 'ds', 'dp', 'graph', 'search', 'string', 'math', 'opt', 'geo', 'adv']]
         
-        # 평균 티어 계산
+        # 그룹 평균 등급 계산
         all_users = selected_users + list(selected_user_info[selected_user_info['user_id'].isin(selected_users) == False]['user_id'])
         average_tiers = [tier_to_num(tier) for tier in selected_user_info['user_tier'].tolist()] + [1.2] * (len(all_users) - len(selected_user_info))
         average_tier = np.mean(average_tiers)
@@ -211,23 +209,21 @@ if st.session_state["selected_users"]:
         st.write("")
         st.write("")
 
-        # 각 사용자에 대한 레이더 차트 그리기
+        # 사용자에 대한 레이더 차트 그리기
         if selected_users:
             st.write("### 🏆 **Individual Ratings by Category**")
 
             st.write("")
             st.write("")
 
-            # 각 사용자에 대한 레이더 차트 그리기
+            # 개인 사용자에 대한 레이더 차트 그리기
             fig, axs = plt.subplots(3, 3, subplot_kw=dict(polar=True), figsize=(12, 12))
             fig.suptitle("Ratings by Category", fontsize=20)
 
-            # 선택된 유저 수
             num_selected_users = len(selected_users)
 
             for i in range(3):
                 for j in range(3):
-                    # 현재 위치에 해당하는 인덱스 계산
                     idx = i * 3 + j
                     
                     # 해당 인덱스에 사용자 정보가 있는 경우
@@ -235,34 +231,34 @@ if st.session_state["selected_users"]:
                         user = selected_users[idx]
                         user_info = selected_user_info[selected_user_info['user_id'] == user]
                         
-                        # 여기서 categories와 values를 설정합니다. 처음 요소를 마지막에 추가하여 배열 길이 일치시킴
+                        # categories와 values 설정. 처음 요소를 마지막에 추가하여 배열 길이 일치시킴
                         categories = ['implement', 'ds', 'dp', 'graph', 'search', 'string', 'math', 'opt', 'geo', 'adv']
                         values = user_info[categories].values.flatten().tolist()
                         values += [values[0]] 
 
-                        # 각 카테고리의 수 만큼 각도를 설정합니다.
+                        # 각 카테고리의 수 만큼 각도 설정
                         angles = np.linspace(0, 2 * np.pi, len(categories), endpoint=False).tolist()
                         angles += angles[:1]  
 
                         ax = axs[i, j]
-                        ax.plot(angles, values, 'o-', linewidth=2, label=f'{user}')
+                        ax.plot(angles, values, 'o-', linewidth=2)
 
-                        # 그룹 평균에 대한 레이더 차트 그리기
+                        # 레이팅 그룹 평균에 대한 레이더 차트 그리기
                         average_values = np.mean(selected_user_info[categories].values, axis=0).tolist()
                         average_values += [average_values[0]]  
-                        ax.plot(angles, average_values, 'o-', linewidth=2, label='Group Average', color='black', alpha=0.5)
+                        ax.plot(angles, average_values, 'o-', linewidth=2, color='red', alpha=0.5)
 
                         ax.fill(angles, average_values, alpha=0.25)
 
-                        # 각도를 설정할 때, 리스트가 아니라 NumPy 배열로 변환해야 합니다.
+                        # 각도를 설정할 때, 리스트가 아닌 NumPy 배열로 변환
                         ax.set_thetagrids(np.array(angles[:-1]) * 180 / np.pi, categories)
                         ax.set_title(f"{user}'s Ratings", fontsize=10, fontweight='bold')
-                        ax.legend(loc='upper right')
+                        #ax.legend(loc='upper right', bbox_to_anchor=(0, 0))
 
                         # 표현 범위를 100까지로 조절
                         ax.set_ylim(0, 100)
                     else:
-                        # 해당 인덱스에 사용자 정보가 없는 경우 (추가된 부분)
+                        # 해당 인덱스에 사용자 정보가 없는 경우
                         axs[i, j].axis('off')
 
             # 레이아웃 조정
