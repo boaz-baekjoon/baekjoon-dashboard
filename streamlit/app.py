@@ -219,36 +219,55 @@ if st.session_state["selected_users"]:
             st.write("")
 
             # 각 사용자에 대한 레이더 차트 그리기
-            for user in selected_users:
-                user_info = selected_user_info[selected_user_info['user_id'] == user]
-    
-                # 여기서 categories와 values를 설정합니다, 처음 요소를 마지막에 추가하여 배열 길이 일치시킴
-                categories = ['implement', 'ds', 'dp', 'graph', 'search', 'string', 'math', 'opt', 'geo', 'adv']
-                values = user_info[categories].values.flatten().tolist()
-                values += [values[0]] 
+            fig, axs = plt.subplots(3, 3, subplot_kw=dict(polar=True), figsize=(12, 12))
+            fig.suptitle("Ratings by Category", fontsize=20)
 
-                # 각 카테고리의 수 만큼 각도를 설정합니다.
-                angles = np.linspace(0, 2 * np.pi, len(categories), endpoint=False).tolist()
-                angles += angles[:1]  
+            # 선택된 유저 수
+            num_selected_users = len(selected_users)
 
-                fig, ax = plt.subplots(subplot_kw=dict(polar=True), figsize=(4, 4))
-                ax.plot(angles, values, 'o-', linewidth=2, label=f'{user}')
+            for i in range(3):
+                for j in range(3):
+                    # 현재 위치에 해당하는 인덱스 계산
+                    idx = i * 3 + j
+                    
+                    # 해당 인덱스에 사용자 정보가 있는 경우
+                    if idx < num_selected_users:
+                        user = selected_users[idx]
+                        user_info = selected_user_info[selected_user_info['user_id'] == user]
+                        
+                        # 여기서 categories와 values를 설정합니다. 처음 요소를 마지막에 추가하여 배열 길이 일치시킴
+                        categories = ['implement', 'ds', 'dp', 'graph', 'search', 'string', 'math', 'opt', 'geo', 'adv']
+                        values = user_info[categories].values.flatten().tolist()
+                        values += [values[0]] 
 
-                # 그룹 평균에 대한 레이더 차트 그리기
-                average_values = np.mean(selected_user_info[categories].values, axis=0).tolist()
-                average_values += [average_values[0]]  
-                ax.plot(angles, average_values, 'o-', linewidth=2, label='Group Average', color='black', alpha=0.5)
+                        # 각 카테고리의 수 만큼 각도를 설정합니다.
+                        angles = np.linspace(0, 2 * np.pi, len(categories), endpoint=False).tolist()
+                        angles += angles[:1]  
 
-                ax.fill(angles, average_values, alpha=0.25)
-    
-                # 각도를 설정할 때, 리스트가 아니라 NumPy 배열로 변환해야 합니다.
-                ax.set_thetagrids(np.array(angles[:-1]) * 180 / np.pi, categories)
-                ax.set_title(f"{user}'s Ratings by Category", fontsize=10, fontweight='bold')
-                ax.legend(loc='upper right')
+                        ax = axs[i, j]
+                        ax.plot(angles, values, 'o-', linewidth=2, label=f'{user}')
 
-                # 표현 범위를 100까지로 조절
-                ax.set_ylim(0, 100)
+                        # 그룹 평균에 대한 레이더 차트 그리기
+                        average_values = np.mean(selected_user_info[categories].values, axis=0).tolist()
+                        average_values += [average_values[0]]  
+                        ax.plot(angles, average_values, 'o-', linewidth=2, label='Group Average', color='black', alpha=0.5)
 
-                # Streamlit에서 그림 표시
-                st.pyplot(fig)
+                        ax.fill(angles, average_values, alpha=0.25)
+
+                        # 각도를 설정할 때, 리스트가 아니라 NumPy 배열로 변환해야 합니다.
+                        ax.set_thetagrids(np.array(angles[:-1]) * 180 / np.pi, categories)
+                        ax.set_title(f"{user}'s Ratings", fontsize=10, fontweight='bold')
+                        ax.legend(loc='upper right')
+
+                        # 표현 범위를 100까지로 조절
+                        ax.set_ylim(0, 100)
+                    else:
+                        # 해당 인덱스에 사용자 정보가 없는 경우 (추가된 부분)
+                        axs[i, j].axis('off')
+
+            # 레이아웃 조정
+            plt.tight_layout(rect=[0, 0, 1, 0.96])
+
+            # Streamlit에서 그림 표시
+            st.pyplot(fig)
 
