@@ -151,7 +151,7 @@ st.write("2. 백준 등급은 **Bronze**부터 **Master**등급까지 구성되�
 st.write("3. **Master** 등급을 제외한 각 등급마다 **5**개의 구간으로 나누어집니다. (예: Silver 1 ~ Silver 5)")
 st.write("4. 백준 그룹 문제 추천 서비스는 **Silver 5**이상 등급부터 사용하는 것을 권장합니다.")
 st.write("5. 사용자 아이디의 등급이 **Silver 5 미만**이거나 존재하지 않을 경우, **Bronze 5**로 적용됩니다.")
-st.write("6. 그래프는 선택된 사용자의 **현재 카테고리별 점수**를 나타내며, **Group Average**는 그룹의 평균 점수를 나타냅니다.")
+st.write("6. 그래프는 사용자의 **현재 카테고리별 점수**를 나타내며, **Group Average**는 그룹의 평균 점수를 나타냅니다.")
 st.write("7. Silver 5 미만 사용자의 경우 시각화가 제한되며, 그룹 카테고리 점수 평균에 따로 영향을 주지 않습니다.")
 
 st.write("")
@@ -202,10 +202,28 @@ if st.session_state["selected_users"]:
         st.write("")
 
         # 텍스트로 변환된 등급 표시
-        st.write(f"<div style='text-align: center; font-size: xx-large;'><strong> ➡️ 현재 그룹의 백준 평균 등급은 <span style='color: red;'>{average_tier_text}</span>입니다.</strong></div>", unsafe_allow_html=True)
+        #st.write(f"<div style='text-align: center; font-size: xx-large;'><strong> ➡️ 현재 그룹의 백준 평균 등급은 <span style='color: red;'>{average_tier_text}</span>입니다.</strong></div>", unsafe_allow_html=True)
 
         st.write("")
         st.write("")
+        st.write("")
+        st.write("")
+
+        # 그룹 레이팅 평균값을 slider로 조정
+        group_average_slider = st.sidebar.slider("그룹 레이팅 평균값 조정", min_value=1.2, max_value=7.0, value=average_tier)
+
+        # 그룹 레이팅 평균값을 텍스트로 변환
+        group_average_text = tier_avg_to_text(group_average_slider)
+
+        # 텍스트로 변환된 그룹 레이팅 평균값 표시
+        st.sidebar.write(f"조정된 그룹 레이팅 평균값: {group_average_text}")
+
+        # 그룹 평균 등급을 텍스트로 변환
+        adjusted_average_tier_text = tier_avg_to_text(group_average_slider)
+
+        # 텍스트로 변환된 등급 표시
+        st.write(f"<div style='text-align: center; font-size: xx-large; margin-top: -60px;'><strong> ➡️ 현재 그룹의 백준 평균 등급은 <span style='color: red;'>{adjusted_average_tier_text}</span>입니다.</strong></div>", unsafe_allow_html=True)
+
         st.write("")
         st.write("")
 
@@ -218,7 +236,7 @@ if st.session_state["selected_users"]:
 
             # 개인 사용자에 대한 레이더 차트 그리기
             fig, axs = plt.subplots(3, 3, subplot_kw=dict(polar=True), figsize=(12, 12))
-            fig.suptitle("Ratings by Category", fontsize=20)
+            fig.suptitle("Ratings by Category", fontsize=25)
 
             num_selected_users = len(selected_users)
 
@@ -257,6 +275,11 @@ if st.session_state["selected_users"]:
 
                         # 표현 범위를 100까지로 조절
                         ax.set_ylim(0, 100)
+
+                        # 레이더 차트에 그룹 레이팅 평균값 적용
+                        average_values = np.array(average_values) * group_average_slider / average_tier
+                        ax.plot(angles, average_values, 'o-', linewidth=2, color='green', alpha=0.5)
+
                     else:
                         # 해당 인덱스에 사용자 정보가 없는 경우
                         axs[i, j].axis('off')
