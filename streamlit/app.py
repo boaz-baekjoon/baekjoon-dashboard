@@ -1,7 +1,8 @@
 import numpy as np
-import pandas as pd 
+import pandas as pd
 import matplotlib.pyplot as plt
 import streamlit as st
+from matplotlib.patches import RegularPolygon
 
 # 모듈 수준에서 session_state 객체 정의
 if "selected_users" not in st.session_state:
@@ -97,9 +98,9 @@ def tier_avg_to_text(avg_tier):
     elif avg_tier > 7.0:
         return "Master"
     else:
-        return f"{avg_tier:.1f}"
+        return 1.2
 
-#csv 파일 불러오기
+# CSV 파일 불러오기
 csv_path = "/Users/thjeong/Desktop/BOAZ/adv/files/new_users_detail.csv"  
 user_df = pd.read_csv(csv_path)
 
@@ -182,8 +183,8 @@ if st.session_state["selected_users"]:
             break  
 
     if selected_users:
-        selected_user_info = user_df[user_df['user_id'].isin(selected_users)][['user_id', 'user_tier']]
-
+        selected_user_info = user_df[user_df['user_id'].isin(selected_users)][['user_id', 'user_tier', 'implement', 'ds', 'dp', 'graph', 'search', 'string', 'math', 'opt', 'geo', 'adv']]
+        
         # 평균 티어 계산
         all_users = selected_users + list(selected_user_info[selected_user_info['user_id'].isin(selected_users) == False]['user_id'])
         average_tiers = [tier_to_num(tier) for tier in selected_user_info['user_tier'].tolist()] + [1.2] * (len(all_users) - len(selected_user_info))
