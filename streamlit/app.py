@@ -159,10 +159,10 @@ st.write("")
 st.write("")
 st.write("")
 
-# Personal Status 추가
+# Check Baekjoon Tier 추가
 st.markdown("""
     <div style="display: block; text-align: left; margin-left: 0px;">
-        <h3>⭐ Personal Status</h3>
+        <h3>✔️ Check Baekjoon Tier</h3>
     </div>
 """, unsafe_allow_html=True)
 
@@ -204,19 +204,16 @@ if st.session_state["selected_users"]:
         st.write("")
 
         # 텍스트로 변환된 등급 표시
-        st.write(f"<div style='text-align: center; font-size: xx-large;'><strong>해당 그룹의 백준 평균 등급은 <span style='color: red;'>{average_tier_text}</span>입니다.</strong></div>", unsafe_allow_html=True)
+        st.write(f"<div style='text-align: center; font-size: xx-large;'><strong> ➡️ 현재 그룹의 백준 평균 등급은 <span style='color: red;'>{average_tier_text}</span>입니다.</strong></div>", unsafe_allow_html=True)
 
         st.write("")
         st.write("")
         st.write("")
         st.write("")
-        st.write("")
-        st.write("")
-
 
         # 각 사용자에 대한 레이더 차트 그리기
         if selected_users:
-            st.write("#### 🏆 **현재 그룹에서의 카테고리별 개별 레이팅 점수**")
+            st.write("### 🏆 **Individual Ratings by Category**")
 
             st.write("")
             st.write("")
@@ -234,7 +231,7 @@ if st.session_state["selected_users"]:
                 angles = np.linspace(0, 2 * np.pi, len(categories), endpoint=False).tolist()
                 angles += angles[:1]  
 
-                fig, ax = plt.subplots(subplot_kw=dict(polar=True), figsize=(6, 6))
+                fig, ax = plt.subplots(subplot_kw=dict(polar=True), figsize=(4, 4))
                 ax.plot(angles, values, 'o-', linewidth=2, label=f'{user}')
 
                 # 그룹 평균에 대한 레이더 차트 그리기
@@ -246,7 +243,7 @@ if st.session_state["selected_users"]:
     
                 # 각도를 설정할 때, 리스트가 아니라 NumPy 배열로 변환해야 합니다.
                 ax.set_thetagrids(np.array(angles[:-1]) * 180 / np.pi, categories)
-                ax.set_title(f"{user}'s categorical rating in present Group", fontsize=20, fontweight='bold')
+                ax.set_title(f"{user}'s Ratings by Category", fontsize=10, fontweight='bold')
                 ax.legend(loc='upper right')
 
                 # 표현 범위를 100까지로 조절
