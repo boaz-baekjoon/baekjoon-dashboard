@@ -171,7 +171,9 @@ st.sidebar.write("")
 if st.session_state["selected_users"]:
     unique_selected_users = list(set(st.session_state["selected_users"]))
 
-    st.write("🔍  **조회하고 싶은 사용자를 선택하고 개인 및 그룹의 현재 백준 등급과 카테고리별 점수를 확인하세요!** 🔍")
+    st.write("")
+
+    st.write("🔍 **조회하고 싶은 사용자를 선택하고 개인 및 그룹의 현재 백준 등급과 카테고리별 점수를 확인하세요!** ")
     selected_users = st.multiselect("", unique_selected_users)
 
     # 등록된 사용자 리스트 표시
@@ -206,24 +208,30 @@ if st.session_state["selected_users"]:
 
         st.write("")
         st.write("")
-        st.write("")
+        
+        # 그룹 레이팅 평균값을 slider로 조정
+        group_average_slider = st.slider("**그룹 평균 등급 조절**", min_value=2.0, max_value=7.0, value=average_tier, step=0.1)
+
         st.write("")
 
-        # 그룹 레이팅 평균값을 slider로 조정
-        group_average_slider = st.sidebar.slider("그룹 레이팅 평균값 조정", min_value=1.2, max_value=7.0, value=average_tier)
+        # 텍스트로 변환된 등급 표시
+        adjusted_average_tier_text = tier_avg_to_text(group_average_slider)
+
+        # 그룹 평균 등급 표시
+        st.write(f"<div style='text-align: center; font-size: xx-large;'><strong> ➡️ 현재 그룹의 백준 평균 등급은 <span style='color: red;'>{adjusted_average_tier_text}</span>입니다.</strong></div>", unsafe_allow_html=True)
+        st.write("")
+
+        # 초기화 버튼
+        undo_button_col, undo_button_col_left = st.columns([0.75, 1])
+        with undo_button_col_left:
+            if st.button("초기화"):
+                group_average_slider = average_tier
 
         # 그룹 레이팅 평균값을 텍스트로 변환
         group_average_text = tier_avg_to_text(group_average_slider)
 
-        # 텍스트로 변환된 그룹 레이팅 평균값 표시
-        st.sidebar.write(f"조정된 그룹 레이팅 평균값: {group_average_text}")
-
-        # 그룹 평균 등급을 텍스트로 변환
-        adjusted_average_tier_text = tier_avg_to_text(group_average_slider)
-
-        # 텍스트로 변환된 등급 표시
-        st.write(f"<div style='text-align: center; font-size: xx-large; margin-top: -60px;'><strong> ➡️ 현재 그룹의 백준 평균 등급은 <span style='color: red;'>{adjusted_average_tier_text}</span>입니다.</strong></div>", unsafe_allow_html=True)
-
+        st.write("")
+        st.write("")
         st.write("")
         st.write("")
 
@@ -276,9 +284,10 @@ if st.session_state["selected_users"]:
                         # 표현 범위를 100까지로 조절
                         ax.set_ylim(0, 100)
 
-                        # 레이더 차트에 그룹 레이팅 평균값 적용
-                        average_values = np.array(average_values) * group_average_slider / average_tier
-                        ax.plot(angles, average_values, 'o-', linewidth=2, color='green', alpha=0.5)
+                        # 슬라이더를 조절한 경우에만 초록색 레이더 차트 그리기
+                        if group_average_slider != average_tier:
+                            adjusted_average_values = np.array(average_values) * group_average_slider / average_tier
+                            ax.plot(angles, adjusted_average_values, 'o-', linewidth=2, color='green', alpha=0.5)
 
                     else:
                         # 해당 인덱스에 사용자 정보가 없는 경우
@@ -290,3 +299,6 @@ if st.session_state["selected_users"]:
             # Streamlit에서 그림 표시
             st.pyplot(fig)
 
+            # 초기화 버튼이 클릭된 경우 그룹 평균 등급 조절 슬라이더도 초기값으로 되돌리기
+            if undo_button_clicked:
+                group_average_slider = average_tier
