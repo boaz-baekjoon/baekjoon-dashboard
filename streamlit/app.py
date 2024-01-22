@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 import streamlit as st
 from matplotlib.patches import RegularPolygon
 
+
 # 모듈 수준에서 session_state 객체 정의
 if "selected_users" not in st.session_state:
     st.session_state["selected_users"] = []
@@ -137,7 +138,7 @@ if user_search:
             if selected_user not in st.session_state["selected_users"]:
                 st.session_state["selected_users"].append(selected_user)
 
-# 제목 title 넣기
+# 제목 넣기
 st.header('*BAEKJOON: Group-based Problem Recommendation Service*', divider='rainbow')
 
 st.write("")
@@ -152,7 +153,7 @@ st.markdown("""
 - **Master** 등급을 제외한 각 등급마다 **5**개의 구간으로 나누어집니다. (예: Silver 1 ~ Silver 5)
 - 사용자 아이디의 등급이 **Silver 5 미만**이거나 존재하지 않을 경우, **Bronze 5**로 적용됩니다.
 - 백준 그룹 문제 추천 서비스는 추천의 정확도를 위해 **Silver 5**이상 등급부터 사용하는 것을 권장합니다.
-- **Silver 5** 미만 사용자의 경우 개인 시각화가 제한되며, 그룹 카테고리 점수 평균에 따로 영향을 주지 않습니다.
+- **Silver 5** 미만 사용자의 경우 개인 시각화가 제한되며, 그룹 카테고리 점수 평균에 영향을 주지 않습니다.
 - 그래프는 사용자의 **현재 카테고리별 레이팅 점수**와 그룹의 **평균 점수**를 나타냅니다.
 """)
 st.markdown("<div style='text-align: left; margin-left: 30px;'> ⭐ <span style='color:blue'>파란색: 개인 레이팅</span> / <span style='color:red'>빨간색: 현재 그룹 평균 레이팅</span> / <span style='color:green'>초록색: 조절된 그룹 평균 레이팅</span></div>", unsafe_allow_html=True)
@@ -161,15 +162,26 @@ st.write("")
 st.write("")
 st.write("")
 
-# How to use
+# How to use 추가
 st.markdown("""
     <div style="display: block; text-align: left; margin-left: 0px;">
         <h3>❓ How to use</h3>
     </div>
 """, unsafe_allow_html=True)
-st.write("1. 사이드바의 사용자 검색 공간에 본인의 백준 아이디를 입력하고 Enter를 눌러 검색하세요.")
-st.write("2. 사이드바의 사용자 검색 공간에 본인의 백준 아이디를 입력하고 Enter를 눌러 검색하세요.")
+st.write("1. 왼쪽 사이드바의 **사용자 검색**에 백준 아이디를 입력하고 **Enter**를 눌러 검색 후, 사용자 정보를 확인하세요.")
+st.write("2. 그룹에 등록하고 경우, **사용자 등록** 버튼을 클릭하여 그룹 목록에 사용자 아이디를 추가하세요.")
+st.write("3. **Check Baekjoon Tier** 메뉴 아래에 **그룹 목록**에서 조회할 유저를 선택하세요.")
+st.write("4. 조회할 유저를 선택하면(1), 그룹의 백준 **평균 등급**이 아래에 **빨간색 텍스트**로 표시돼요.")
+st.write("5. 조회할 유저를 선택하면(2), **카테고리별** 개인 레이팅 및 그룹 평균 레이팅을 시각화해요.")
+st.write("6. **그룹 평균 등급 조절** 슬라이더를 사용하여, **백준 평균 등급**을 조절할 수 있어요. (**0.05** 간격으로 조절 가능)")
+st.write("7. **조정된 백준 평균 등급**은 아래에 **초록색 텍스트**로 표시돼요.")
+st.write("8. 슬라이더로 **조정된 평균 등급**에 맞춰 해당 등급 유저들의 **카테고리별 평균 레이팅**을 시각화해요.")
+st.write("9. **Tips**에 있는 그래프 관련 색 설명을 참조하여, **개인/그룹 평균/조절된 그룹 평균**에 대한 결과를 확인하세요.")
+st.write("10. 그룹에서 특정 사용자를 제외하고 싶을 때, **등록된 사용자 목록**에서 해당 사용자 아이디를 **두 번** 클릭하세요.")
 
+st.write("")
+st.write("")
+st.write("")
 
 st.markdown("""
     <div style="display: block; text-align: left; margin-left: 0px;">
@@ -274,8 +286,9 @@ if st.session_state["selected_users"]:
                         angles = np.linspace(0, 2 * np.pi, len(categories), endpoint=False).tolist()
                         angles += angles[:1]  
 
+                        # 개인 레이더 차트 그리기
                         ax = axs[i, j]
-                        ax.plot(angles, values, 'o-', linewidth=2)
+                        ax.plot(angles, values, 'o-', linewidth=2, color='blue', alpha=0.75)
 
                         # 레이팅 그룹 평균에 대한 레이더 차트 그리기
                         average_values = np.mean(selected_user_info[categories].values, axis=0).tolist()
@@ -286,24 +299,19 @@ if st.session_state["selected_users"]:
 
                         # 각도를 설정할 때, 리스트가 아닌 NumPy 배열로 변환
                         ax.set_thetagrids(np.array(angles[:-1]) * 180 / np.pi, categories)
-                        ax.set_title(f"{user}", fontsize=10, fontweight='bold')
+                        ax.set_title(f"{user}", fontsize=15, fontweight='bold')
                         #ax.legend(loc='upper right', bbox_to_anchor=(0, 0))
 
-                        # 표현 범위를 100까지로 조절
                         ax.set_ylim(0, 100)
 
                         # 슬라이더를 조절한 경우에 초록색 레이더 차트 그리기
                         adjusted_average_values = np.zeros(len(categories))
                         if group_average_slider != average_tier:
-                            # 조절된 등급에 해당하는 카테고리별 평균 계산
                             adjusted_average_values = user_df[user_df['user_tier'] == group_average_text][categories].mean().values
-
                             adjusted_average_values = np.concatenate((adjusted_average_values, [adjusted_average_values[0]]))
-
-                            ax.plot(angles, adjusted_average_values, 'o-', linewidth=2, color='green', alpha=0.5)
+                            ax.plot(angles, adjusted_average_values, 'o-', linewidth=2, color='green', alpha=0.75)
 
                     else:
-                        # 해당 인덱스에 사용자 정보가 없는 경우
                         axs[i, j].axis('off')
 
             # 레이아웃 조정
