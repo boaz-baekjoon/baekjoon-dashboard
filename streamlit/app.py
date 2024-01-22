@@ -138,7 +138,7 @@ if user_search:
                 st.session_state["selected_users"].append(selected_user)
 
 # 제목 title 넣기
-st.title('*BAEKJOON: Group-based Problem Recommendation Service*')
+st.header('*BAEKJOON: Group-based Problem Recommendation Service*', divider='rainbow')
 
 st.write("")
 st.write("")
@@ -146,17 +146,30 @@ st.write("")
 
 # 팁 추가
 st.write("### **💡 Tips**")
-st.write("1. 백준 그룹 문제 추천 서비스 대시보드는 실제 백준 사이트의 정보를 참조하여 기능합니다.") 
-st.write("2. 백준 등급은 **Bronze**부터 **Master**등급까지 구성되어 있습니다.")
-st.write("3. **Master** 등급을 제외한 각 등급마다 **5**개의 구간으로 나누어집니다. (예: Silver 1 ~ Silver 5)")
-st.write("4. 백준 그룹 문제 추천 서비스는 **Silver 5**이상 등급부터 사용하는 것을 권장합니다.")
-st.write("5. 사용자 아이디의 등급이 **Silver 5 미만**이거나 존재하지 않을 경우, **Bronze 5**로 적용됩니다.")
-st.write("6. 그래프는 사용자의 **현재 카테고리별 점수**를 나타내며, **Group Average**는 그룹의 평균 점수를 나타냅니다.")
-st.write("7. Silver 5 미만 사용자의 경우 시각화가 제한되며, 그룹 카테고리 점수 평균에 따로 영향을 주지 않습니다.")
+st.markdown("""
+- 백준 그룹 문제 추천 서비스 대시보드는 **실제 백준 사이트**([Baekjoon 링크](https://www.acmicpc.net/))의 정보를 참조하여 기능합니다.
+- 백준 등급은 기본적으로 **Bronze**부터 **Master**등급까지 구성되어 있습니다.
+- **Master** 등급을 제외한 각 등급마다 **5**개의 구간으로 나누어집니다. (예: Silver 1 ~ Silver 5)
+- 사용자 아이디의 등급이 **Silver 5 미만**이거나 존재하지 않을 경우, **Bronze 5**로 적용됩니다.
+- 백준 그룹 문제 추천 서비스는 추천의 정확도를 위해 **Silver 5**이상 등급부터 사용하는 것을 권장합니다.
+- **Silver 5** 미만 사용자의 경우 개인 시각화가 제한되며, 그룹 카테고리 점수 평균에 따로 영향을 주지 않습니다.
+- 그래프는 사용자의 **현재 카테고리별 레이팅 점수**와 그룹의 **평균 점수**를 나타냅니다.
+""")
+st.markdown("<div style='text-align: left; margin-left: 30px;'> ⭐ <span style='color:blue'>파란색: 개인 레이팅</span> / <span style='color:red'>빨간색: 현재 그룹 평균 레이팅</span> / <span style='color:green'>초록색: 조절된 그룹 평균 레이팅</span></div>", unsafe_allow_html=True)
 
 st.write("")
 st.write("")
 st.write("")
+
+# How to use
+st.markdown("""
+    <div style="display: block; text-align: left; margin-left: 0px;">
+        <h3>❓ How to use</h3>
+    </div>
+""", unsafe_allow_html=True)
+st.write("1. 사이드바의 사용자 검색 공간에 본인의 백준 아이디를 입력하고 Enter를 눌러 검색하세요.")
+st.write("2. 사이드바의 사용자 검색 공간에 본인의 백준 아이디를 입력하고 Enter를 눌러 검색하세요.")
+
 
 st.markdown("""
     <div style="display: block; text-align: left; margin-left: 0px;">
@@ -204,13 +217,15 @@ if st.session_state["selected_users"]:
         st.write("")
 
         # 텍스트로 변환된 등급 표시
-        #st.write(f"<div style='text-align: center; font-size: xx-large;'><strong> ➡️ 현재 그룹의 백준 평균 등급은 <span style='color: red;'>{average_tier_text}</span>입니다.</strong></div>", unsafe_allow_html=True)
+        st.write(f"<div style='text-align: center; font-size: xx-large;'><strong> ➡️ 현재 그룹의 백준 평균 등급은 <span style='color: red;'>{average_tier_text}</span>입니다.</strong></div>", unsafe_allow_html=True)
 
+        st.write("")
+        st.write("")
         st.write("")
         st.write("")
         
         # 그룹 레이팅 평균값을 slider로 조정
-        group_average_slider = st.slider("**그룹 평균 등급 조절**", min_value=2.0, max_value=7.0, value=average_tier, step=0.1)
+        group_average_slider = st.slider("**그룹 평균 등급 조절**", min_value=2.0, max_value=8.0, value=average_tier, step=0.05)
 
         st.write("")
 
@@ -218,14 +233,8 @@ if st.session_state["selected_users"]:
         adjusted_average_tier_text = tier_avg_to_text(group_average_slider)
 
         # 그룹 평균 등급 표시
-        st.write(f"<div style='text-align: center; font-size: xx-large;'><strong> ➡️ 현재 그룹의 백준 평균 등급은 <span style='color: red;'>{adjusted_average_tier_text}</span>입니다.</strong></div>", unsafe_allow_html=True)
+        st.write(f"<div style='text-align: center; font-size: xx-large;'><strong> ➡️ 조절된 백준 평균 등급은 <span style='color: green;'>{adjusted_average_tier_text}</span>입니다.</strong></div>", unsafe_allow_html=True)
         st.write("")
-
-        # 초기화 버튼
-        undo_button_col, undo_button_col_left = st.columns([0.75, 1])
-        with undo_button_col_left:
-            if st.button("초기화"):
-                group_average_slider = average_tier
 
         # 그룹 레이팅 평균값을 텍스트로 변환
         group_average_text = tier_avg_to_text(group_average_slider)
@@ -244,19 +253,18 @@ if st.session_state["selected_users"]:
 
             # 개인 사용자에 대한 레이더 차트 그리기
             fig, axs = plt.subplots(3, 3, subplot_kw=dict(polar=True), figsize=(12, 12))
-            fig.suptitle("Ratings by Category", fontsize=25)
 
             num_selected_users = len(selected_users)
 
             for i in range(3):
                 for j in range(3):
                     idx = i * 3 + j
-                    
+                            
                     # 해당 인덱스에 사용자 정보가 있는 경우
                     if idx < num_selected_users:
                         user = selected_users[idx]
                         user_info = selected_user_info[selected_user_info['user_id'] == user]
-                        
+                                
                         # categories와 values 설정. 처음 요소를 마지막에 추가하여 배열 길이 일치시킴
                         categories = ['implement', 'ds', 'dp', 'graph', 'search', 'string', 'math', 'opt', 'geo', 'adv']
                         values = user_info[categories].values.flatten().tolist()
@@ -278,15 +286,25 @@ if st.session_state["selected_users"]:
 
                         # 각도를 설정할 때, 리스트가 아닌 NumPy 배열로 변환
                         ax.set_thetagrids(np.array(angles[:-1]) * 180 / np.pi, categories)
-                        ax.set_title(f"{user}'s Ratings", fontsize=10, fontweight='bold')
+                        ax.set_title(f"{user}", fontsize=10, fontweight='bold')
                         #ax.legend(loc='upper right', bbox_to_anchor=(0, 0))
 
                         # 표현 범위를 100까지로 조절
                         ax.set_ylim(0, 100)
 
-                        # 슬라이더를 조절한 경우에만 초록색 레이더 차트 그리기
+                        # 슬라이더를 조절한 경우에 초록색 레이더 차트 그리기
+                        adjusted_average_values = np.zeros(len(categories))
                         if group_average_slider != average_tier:
-                            adjusted_average_values = np.array(average_values) * group_average_slider / average_tier
+                            selected_users_with_specific_tier = user_df[user_df['user_tier'] == tier_avg_to_text(group_average_slider)]['user_id']
+
+                            # 선택된 사용자들 중에서 특정 등급인 사용자들의 카테고리별 평균 계산
+                            if not selected_users_with_specific_tier.empty:
+                                specific_tier_user_info = selected_user_info[selected_user_info['user_id'].isin(selected_users_with_specific_tier)]
+                                specific_tier_average_values = np.mean(specific_tier_user_info[categories].values, axis=0)
+                                adjusted_average_values = specific_tier_average_values
+
+                            adjusted_average_values = np.concatenate((adjusted_average_values, [adjusted_average_values[0]]))
+
                             ax.plot(angles, adjusted_average_values, 'o-', linewidth=2, color='green', alpha=0.5)
 
                     else:
@@ -298,7 +316,3 @@ if st.session_state["selected_users"]:
 
             # Streamlit에서 그림 표시
             st.pyplot(fig)
-
-            # 초기화 버튼이 클릭된 경우 그룹 평균 등급 조절 슬라이더도 초기값으로 되돌리기
-            if undo_button_clicked:
-                group_average_slider = average_tier
