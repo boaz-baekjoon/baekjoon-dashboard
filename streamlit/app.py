@@ -233,7 +233,7 @@ if st.session_state["selected_users"]:
         adjusted_average_tier_text = tier_avg_to_text(group_average_slider)
 
         # 그룹 평균 등급 표시
-        st.write(f"<div style='text-align: center; font-size: xx-large;'><strong> ➡️ 조절된 백준 평균 등급은 <span style='color: green;'>{adjusted_average_tier_text}</span>입니다.</strong></div>", unsafe_allow_html=True)
+        st.write(f"<div style='text-align: center; font-size: xx-large;'><strong> ➡️ 조정된 백준 평균 등급은 <span style='color: green;'>{adjusted_average_tier_text}</span>입니다.</strong></div>", unsafe_allow_html=True)
         st.write("")
 
         # 그룹 레이팅 평균값을 텍스트로 변환
@@ -295,13 +295,8 @@ if st.session_state["selected_users"]:
                         # 슬라이더를 조절한 경우에 초록색 레이더 차트 그리기
                         adjusted_average_values = np.zeros(len(categories))
                         if group_average_slider != average_tier:
-                            selected_users_with_specific_tier = user_df[user_df['user_tier'] == tier_avg_to_text(group_average_slider)]['user_id']
-
-                            # 선택된 사용자들 중에서 특정 등급인 사용자들의 카테고리별 평균 계산
-                            if not selected_users_with_specific_tier.empty:
-                                specific_tier_user_info = selected_user_info[selected_user_info['user_id'].isin(selected_users_with_specific_tier)]
-                                specific_tier_average_values = np.mean(specific_tier_user_info[categories].values, axis=0)
-                                adjusted_average_values = specific_tier_average_values
+                            # 조절된 등급에 해당하는 카테고리별 평균 계산
+                            adjusted_average_values = user_df[user_df['user_tier'] == group_average_text][categories].mean().values
 
                             adjusted_average_values = np.concatenate((adjusted_average_values, [adjusted_average_values[0]]))
 
