@@ -18,90 +18,90 @@ def tier_to_num(tier):
             break
     
     if tier.startswith("Bronze"):
-        return 2.0 - 0.2 * (division - 1)
+        return 6.0 - division
     elif tier.startswith("Silver"):
-        return 3.0 - 0.2 * (division - 1)
+        return 11.0 - division
     elif tier.startswith("Gold"):
-        return 4.0 - 0.2 * (division - 1)
+        return 16.0 - division
     elif tier.startswith("Platinum"):
-        return 5.0 - 0.2 * (division - 1)
+        return 21.0 - division
     elif tier.startswith("Diamond"):
-        return 6.0 - 0.2 * (division - 1)
+        return 26.0 - division
     elif tier.startswith("Ruby"):
-        return 7.0 - 0.2 * (division - 1)
+        return 31.0 - division
     elif tier == "Master":
-        return 8.0
+        return 31.0
     else:
-        return 1.2
+        return 1.0
 
 # 등급 범위에 따라 텍스트로 변환하는 함수 정의
 def tier_avg_to_text(avg_tier):
-    if avg_tier <= 1.2:
+    if avg_tier < 2.0:
         return "Bronze 5"
-    elif 1.2 < avg_tier <= 1.4:
+    elif 2.0 <= avg_tier < 3.0:
         return "Bronze 4"
-    elif 1.4 < avg_tier <= 1.6:
+    elif 3.0 <= avg_tier < 4.0:
         return "Bronze 3"
-    elif 1.6 < avg_tier <= 1.8:
+    elif 4.0 <= avg_tier < 5.0:
         return "Bronze 2"
-    elif 1.8 < avg_tier <= 2.0:
+    elif 5.0 <= avg_tier < 6.0:
         return "Bronze 1"
-    elif 2.0 < avg_tier <= 2.2:
+    elif 6.0 <= avg_tier < 7.0:
         return "Silver 5"
-    elif 2.2 < avg_tier <= 2.4:
+    elif 7.0 <= avg_tier < 8.0:
         return "Silver 4"
-    elif 2.4 < avg_tier <= 2.6:
+    elif 8.0 <= avg_tier < 9.0:
         return "Silver 3"
-    elif 2.6 < avg_tier <= 2.8:
+    elif 9.0 <= avg_tier < 10.0:
         return "Silver 2"
-    elif 2.8 < avg_tier <= 3.0:
+    elif 10.0 <= avg_tier < 11.0:
         return "Silver 1"
-    elif 3.0 < avg_tier <= 3.2:
+    elif 11.0 <= avg_tier < 12.0:
         return "Gold 5"
-    elif 3.2 < avg_tier <= 3.4:
+    elif 12.0 <= avg_tier < 13.0:
         return "Gold 4"
-    elif 3.4 < avg_tier <= 3.6:
+    elif 13.0 <= avg_tier < 14.0:
         return "Gold 3"
-    elif 3.6 < avg_tier <= 3.8:
+    elif 14.0 <= avg_tier < 15.0:
         return "Gold 2"
-    elif 3.8 < avg_tier <= 4.0:
+    elif 15.0 <= avg_tier < 16.0:
         return "Gold 1"
-    elif 4.0 < avg_tier <= 4.2:
+    elif 16.0 <= avg_tier < 17.0:
         return "Platinum 5"
-    elif 4.2 < avg_tier <= 4.4:
+    elif 17.0 <= avg_tier < 18.0:
         return "Platinum 4"
-    elif 4.4 < avg_tier <= 4.6:
+    elif 18.0 <= avg_tier < 19.0:
         return "Platinum 3"
-    elif 4.6 < avg_tier <= 4.8:
+    elif 19.0 <= avg_tier < 20.0:
         return "Platinum 2"
-    elif 4.8 < avg_tier <= 5.0:
+    elif 20.0 <= avg_tier < 21.0:
         return "Platinum 1"
-    elif 5.0 < avg_tier <= 5.2:
+    elif 21.0 <= avg_tier < 22.0:
         return "Diamond 5"
-    elif 5.2 < avg_tier <= 5.4:
+    elif 22.0 <= avg_tier < 23.0:
         return "Diamond 4"
-    elif 5.4 < avg_tier <= 5.6:
+    elif 23.0 <= avg_tier < 24.0:
         return "Diamond 3"
-    elif 5.6 < avg_tier <= 5.8:
+    elif 24.0 <= avg_tier < 25.0:
         return "Diamond 2"
-    elif 5.8 < avg_tier <= 6.0:
+    elif 25.0 <= avg_tier < 26.0:
         return "Diamond 1"
-    elif 6.0 < avg_tier <= 6.2:
+    elif 26.0 <= avg_tier < 27.0:
         return "Ruby 5"
-    elif 6.2 < avg_tier <= 6.4:
+    elif 27.0 <= avg_tier < 28.0:
         return "Ruby 4"
-    elif 6.4 < avg_tier <= 6.6:
+    elif 28.0 <= avg_tier < 29.0:
         return "Ruby 3"
-    elif 6.6 < avg_tier <= 6.8:
+    elif 29.0 <= avg_tier < 30.0:
         return "Ruby 2"
-    elif 6.8 < avg_tier <= 7.0:
+    elif 30.0 <= avg_tier < 31.0:
         return "Ruby 1"
-    elif avg_tier > 7.0:
+    elif avg_tier > 31.0:
         return "Master"
     else:
-        return 1.2
+        return 1.0
 
-csv_path = "/Users/thjeong/Desktop/BOAZ/adv/files/new_users_detail.csv"  
+csv_path = "/Users/thjeong/Desktop/BOAZ/adv/files/new_users_detail_2.csv"  
 user_df = pd.read_csv(csv_path)
 
 help_text = """
@@ -135,7 +135,7 @@ if user_search:
     # 정확히 일치하는 사용자가 없는 경우
     else:
         st.sidebar.write("검색 결과가 없습니다.")
-        st.sidebar.write(pd.DataFrame({"user_rank": [0], "user_id": [user_search], "user_tier": ["Bronze 5"]}).to_markdown(index=False))
+        st.sidebar.write(pd.DataFrame({"user_rank": [0], "user_id": [user_search], "user_tier": ["❓"]}).to_markdown(index=False))
 
         st.sidebar.write("")
 
@@ -180,7 +180,7 @@ st.markdown("""
     </div>
 """, unsafe_allow_html=True)
 
-with st.expander("**How to use❓**", expanded=True):
+with st.expander("**How to use❓**", expanded=False):
     st.markdown(help_text_2, unsafe_allow_html=True)
 
 st.sidebar.write("")
@@ -203,7 +203,7 @@ if st.session_state["selected_users"]:
             break  
 
     if selected_users:
-        selected_user_info = user_df[user_df['user_id'].isin(selected_users)][['user_id', 'user_tier', 'implement', 'ds', 'dp', 'graph', 'search', 'string', 'math', 'opt', 'geo', 'adv']]
+        selected_user_info = user_df[user_df['user_id'].isin(selected_users)][['user_id', 'user_tier', 'implementation', 'ds', 'dp', 'graph', 'search', 'string', 'math', 'opt', 'geo', 'adv']]
         
         # 그룹 평균 등급 계산
         all_users = selected_users + list(selected_user_info[selected_user_info['user_id'].isin(selected_users) == False]['user_id'])
@@ -213,9 +213,9 @@ if st.session_state["selected_users"]:
         # 평균 티어를 텍스트로 변환
         average_tier_text = tier_avg_to_text(average_tier)
 
-        # 선택된 각 사용자에 대해 만약 데이터셋에 없는 경우 기본값으로 1.2 설정
+        # 선택된 각 사용자에 대해 만약 데이터셋에 없는 경우 기본값으로 ? 설정
         for user in selected_users:
-            user_tier = tier_to_num(selected_user_info[selected_user_info['user_id'] == user]['user_tier'].values[0]) if user in selected_user_info['user_id'].values else 1.2
+            user_tier = tier_to_num(selected_user_info[selected_user_info['user_id'] == user]['user_tier'].values[0]) if user in selected_user_info['user_id'].values else 1.0
 
         st.write("")
 
@@ -227,7 +227,7 @@ if st.session_state["selected_users"]:
         st.write("")
 
         # 그룹 평균 등급값을 slider로 조정
-        group_average_slider = st.slider("**그룹 평균 등급 조절**", min_value=2.0, max_value=8.0, value=average_tier, step=0.05)
+        group_average_slider = st.slider("**그룹 평균 등급 조절**", min_value=1.0, max_value=35.0, value=average_tier, step=0.5)
 
         st.write("")
 
@@ -266,7 +266,7 @@ if st.session_state["selected_users"]:
                         user_info = selected_user_info[selected_user_info['user_id'] == user]
                                 
                         # categories와 values 설정. 처음 요소를 마지막에 추가하여 배열 길이 일치시킴
-                        categories = ['implement', 'ds', 'dp', 'graph', 'search', 'string', 'math', 'opt', 'geo', 'adv']
+                        categories = ['implementation', 'ds', 'dp', 'graph', 'search', 'string', 'math', 'opt', 'geo', 'adv']
                         values = user_info[categories].values.flatten().tolist()
                         values += [values[0]] 
 
