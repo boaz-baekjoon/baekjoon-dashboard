@@ -268,24 +268,24 @@ if st.session_state["selected_users"]:
                                 
                         # categories와 values 설정. 처음 요소를 마지막에 추가하여 배열 길이 일치시킴
                         categories = ['implementation', 'ds', 'dp', 'graph', 'search', 'string', 'math', 'opt', 'geo', 'adv']
-                        values = (user_info[categories].values.flatten() + 20.0).tolist()
+                        values = user_info[categories].values.flatten()
                         values = [min(val, 100) for val in values]
                         values += [values[0]] 
 
                         # 각 카테고리의 수 만큼 각도 설정
                         angles = np.linspace(0, 2 * np.pi, len(categories), endpoint=False).tolist()
-                        angles += angles[:1]  
+                        angles += angles[:1] 
 
                         # 개인 레이팅에 대한 레이더 차트 그리기(파랑)
                         ax = axs[i, j]
+                        values = (np.log1p(user_info[categories].values) / np.max(np.log1p(user_info[categories].values), axis=0) * 100).flatten().tolist()
+                        values += [values[0]]
                         ax.plot(angles, values, 'o-', linewidth=2, color='blue', alpha=0.75)
 
                         # 그룹 평균 레이팅에 대한 레이더 차트 그리기(빨강)
-                        average_values = (np.mean(selected_user_info[categories].values, axis=0) + 20.0).tolist()
-                        average_values = [min(val, 100) for val in average_values]
-                        average_values += [average_values[0]]  
+                        average_values = (np.log1p(np.mean(selected_user_info[categories].values, axis=0)) / np.max(np.log1p(np.mean(selected_user_info[categories].values, axis=0))) * 100).flatten().tolist()
+                        average_values += [average_values[0]]
                         ax.plot(angles, average_values, 'o-', linewidth=2, color='red', alpha=0.7)
-
                         ax.fill(angles, average_values, alpha=0.25)
 
                         # 각도를 설정할 때, 리스트가 아닌 NumPy 배열로 변환
@@ -298,9 +298,8 @@ if st.session_state["selected_users"]:
                         # 슬라이더로 조절된 평균 등급의 평균 레이팅에 대한 레이더 차트 그리기(초록)
                         adjusted_average_values = np.zeros(len(categories))
                         if group_average_slider != average_tier:
-                            adjusted_average_values = (user_df[user_df['user_tier'] == group_average_text][categories].mean().values + 20.0).tolist()
-                            adjusted_average_values = [min(val, 100) for val in adjusted_average_values]
-                            adjusted_average_values = np.concatenate((adjusted_average_values, [adjusted_average_values[0]]))
+                            adjusted_average_values = (np.log1p(user_df[user_df['user_tier'] == group_average_text][categories].mean().values) / np.max(np.log1p(user_df[user_df['user_tier'] == group_average_text][categories].mean().values), axis=0) * 100).flatten().tolist()
+                            adjusted_average_values += [adjusted_average_values[0]] 
                             ax.plot(angles, adjusted_average_values, 'o-', linewidth=2, color='green', alpha=0.75)
 
                     else:
