@@ -130,7 +130,8 @@ if user_search:
         # 사용자가 있을 때 사용자 등록 버튼 추가
         if st.sidebar.button("사용자 등록", key=f"register_button_{user_search}"):
             if user_search not in st.session_state["selected_users"]:
-                st.session_state["selected_users"].append(user_search)
+                if filtered_user['user_tier'].values[0] >= "Silver 5":
+                    st.session_state["selected_users"].append(user_search)
 
     # 정확히 일치하는 사용자가 없는 경우
     else:
@@ -155,7 +156,7 @@ st.markdown("""
 - **Master** 등급을 제외한 각 등급마다 **5**개의 구간으로 나누어집니다. (예: Silver 1 ~ Silver 5)
 - **등급 기준 수치** **6**: Silver 5 / **11**: Gold 5 / **16**: Platinum 5 / **21**: Diamond 5 / **26**: Ruby 1 / **31**: Master
 - **사용자 검색**에서 아이디의 등급이 **Silver 5 미만**이거나 존재하지 않을 경우, **❓**로 나타납니다.
-- 백준 그룹 문제 추천 서비스는 추천의 정확도를 위해 **Silver 5**이상 등급부터 사용하는 것을 권장합니다.
+- 백준 그룹 문제 추천 서비스는 추천의 정확도를 위해 **Silver 5**이상 등급부터 사용 가능합니다.
 - **Silver 5** 미만 사용자의 경우 개인 시각화가 제한되며, 그룹 카테고리 점수 평균에 영향을 주지 않습니다.
 - 그래프는 사용자의 **현재 카테고리별 레이팅 점수**와 그룹의 **평균 점수**를 나타냅니다.
 """)
@@ -216,7 +217,7 @@ if st.session_state["selected_users"]:
 
         # 선택된 각 사용자에 대해 만약 데이터셋에 없는 경우 기본값으로 ? 설정
         for user in selected_users:
-            user_tier = tier_to_num(selected_user_info[selected_user_info['user_id'] == user]['user_tier'].values[0]) 
+            user_tier = tier_to_num(selected_user_info[selected_user_info['user_id'] == user]['user_tier'].values[0])
 
         st.write("")
 
