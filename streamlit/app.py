@@ -130,13 +130,12 @@ if user_search:
         # 사용자가 있을 때 사용자 등록 버튼 추가
         if st.sidebar.button("사용자 등록", key=f"register_button_{user_search}"):
             if user_search not in st.session_state["selected_users"]:
-                if filtered_user['user_tier'].values[0] >= "Silver 5":
                     st.session_state["selected_users"].append(user_search)
 
     # 정확히 일치하는 사용자가 없는 경우
     else:
         st.sidebar.write("검색 결과가 없습니다.")
-        st.sidebar.write(pd.DataFrame({"user_rank": [0], "user_id": [user_search], "user_tier": ["❓"]}).to_markdown(index=False))
+        st.sidebar.write(pd.DataFrame({"user_rank": ["❓"], "user_id": [user_search], "user_tier": ["❓"]}).to_markdown(index=False))
 
         st.sidebar.write("")
 
