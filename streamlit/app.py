@@ -96,7 +96,7 @@ def tier_avg_to_text(avg_tier):
         return "Ruby 2"
     elif 30.0 <= avg_tier < 31.0:
         return "Ruby 1"
-    elif avg_tier > 31.0:
+    elif avg_tier >= 31.0:
         return "Master"
     else:
         return 1.0
@@ -153,7 +153,8 @@ st.markdown("""
 - 백준 그룹 문제 추천 서비스 대시보드는 **실제 백준 사이트**([Baekjoon 링크](https://www.acmicpc.net/))의 정보를 참조하여 기능합니다.
 - 백준 등급은 기본적으로 **Bronze**부터 **Master**등급까지 구성되어 있습니다.
 - **Master** 등급을 제외한 각 등급마다 **5**개의 구간으로 나누어집니다. (예: Silver 1 ~ Silver 5)
-- 사용자 아이디의 등급이 **Silver 5 미만**이거나 존재하지 않을 경우, **Bronze 5**로 적용됩니다.
+- **등급 기준 수치** **6**: Silver 5 / **11**: Gold 5 / **16**: Platinum 5 / **21**: Diamond 5 / **26**: Ruby 1 / **31**: Master
+- **사용자 검색**에서 아이디의 등급이 **Silver 5 미만**이거나 존재하지 않을 경우, **❓**로 나타납니다.
 - 백준 그룹 문제 추천 서비스는 추천의 정확도를 위해 **Silver 5**이상 등급부터 사용하는 것을 권장합니다.
 - **Silver 5** 미만 사용자의 경우 개인 시각화가 제한되며, 그룹 카테고리 점수 평균에 영향을 주지 않습니다.
 - 그래프는 사용자의 **현재 카테고리별 레이팅 점수**와 그룹의 **평균 점수**를 나타냅니다.
@@ -167,7 +168,7 @@ help_text_2 = """
 1. **Check Baekjoon Tier** 메뉴 아래에 **그룹 목록**에서 조회할 유저를 선택하세요.
 2. 조회할 유저를 선택하면(1), 그룹의 백준 **평균 등급**이 아래에 **빨간색 텍스트**로 표시돼요.
 3. 조회할 유저를 선택하면(2), **카테고리별** 개인 레이팅 및 그룹 평균 레이팅을 시각화해요.
-4. **그룹 평균 등급 조절** 슬라이더를 사용하여, **백준 평균 등급**을 조절할 수 있어요. (**0.05** 간격으로 조절 가능)
+4. **그룹 평균 등급 조절** 슬라이더를 사용하여, **백준 평균 등급**을 조절할 수 있어요. (**0.5** 간격으로 조절 가능)
 5. **조정된 백준 평균 등급**은 아래에 **초록색 텍스트**로 표시돼요.
 6. 슬라이더로 **조정된 평균 등급**에 맞춰 해당 등급 유저들의 **카테고리별 평균 레이팅**을 시각화해요.
 7. **Tips**에 설명된 그래프 색을 참조하여, **개인/그룹 평균/조절된 그룹 평균**에 대한 결과를 확인하세요.
@@ -207,7 +208,7 @@ if st.session_state["selected_users"]:
         
         # 그룹 평균 등급 계산
         all_users = selected_users + list(selected_user_info[selected_user_info['user_id'].isin(selected_users) == False]['user_id'])
-        average_tiers = [tier_to_num(tier) for tier in selected_user_info['user_tier'].tolist()] + [1.2] * (len(all_users) - len(selected_user_info))
+        average_tiers = [tier_to_num(tier) for tier in selected_user_info['user_tier'].tolist()]
         average_tier = np.mean(average_tiers)
 
         # 평균 티어를 텍스트로 변환
@@ -215,7 +216,7 @@ if st.session_state["selected_users"]:
 
         # 선택된 각 사용자에 대해 만약 데이터셋에 없는 경우 기본값으로 ? 설정
         for user in selected_users:
-            user_tier = tier_to_num(selected_user_info[selected_user_info['user_id'] == user]['user_tier'].values[0]) if user in selected_user_info['user_id'].values else 1.0
+            user_tier = tier_to_num(selected_user_info[selected_user_info['user_id'] == user]['user_tier'].values[0]) 
 
         st.write("")
 
@@ -267,7 +268,8 @@ if st.session_state["selected_users"]:
                                 
                         # categories와 values 설정. 처음 요소를 마지막에 추가하여 배열 길이 일치시킴
                         categories = ['implementation', 'ds', 'dp', 'graph', 'search', 'string', 'math', 'opt', 'geo', 'adv']
-                        values = user_info[categories].values.flatten().tolist()
+                        values = (user_info[categories].values.flatten() + 20.0).tolist()
+                        values = [min(val, 100) for val in values]
                         values += [values[0]] 
 
                         # 각 카테고리의 수 만큼 각도 설정
@@ -279,7 +281,8 @@ if st.session_state["selected_users"]:
                         ax.plot(angles, values, 'o-', linewidth=2, color='blue', alpha=0.75)
 
                         # 그룹 평균 레이팅에 대한 레이더 차트 그리기(빨강)
-                        average_values = np.mean(selected_user_info[categories].values, axis=0).tolist()
+                        average_values = (np.mean(selected_user_info[categories].values, axis=0) + 20.0).tolist()
+                        average_values = [min(val, 100) for val in average_values]
                         average_values += [average_values[0]]  
                         ax.plot(angles, average_values, 'o-', linewidth=2, color='red', alpha=0.7)
 
@@ -295,7 +298,8 @@ if st.session_state["selected_users"]:
                         # 슬라이더로 조절된 평균 등급의 평균 레이팅에 대한 레이더 차트 그리기(초록)
                         adjusted_average_values = np.zeros(len(categories))
                         if group_average_slider != average_tier:
-                            adjusted_average_values = user_df[user_df['user_tier'] == group_average_text][categories].mean().values
+                            adjusted_average_values = (user_df[user_df['user_tier'] == group_average_text][categories].mean().values + 20.0).tolist()
+                            adjusted_average_values = [min(val, 100) for val in adjusted_average_values]
                             adjusted_average_values = np.concatenate((adjusted_average_values, [adjusted_average_values[0]]))
                             ax.plot(angles, adjusted_average_values, 'o-', linewidth=2, color='green', alpha=0.75)
 
