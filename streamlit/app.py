@@ -3,7 +3,8 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import streamlit as st
 from matplotlib.patches import RegularPolygon
-
+import requests
+from dotenv import load_dotenv
 
 # 모듈 수준에서 session_state 객체 정의
 if "selected_users" not in st.session_state:
@@ -315,7 +316,6 @@ if st.session_state["selected_users"]:
 st.write("")
 
 help_text_3 = """
-How to use❓
 1. 왼쪽 사이드바의 **사용자 검색**에 백준 아이디를 입력하고 **Enter**를 눌러 검색 후, 사용자 정보를 확인하세요.
 2. 그룹에 등록하고 경우, **사용자 등록** 버튼을 클릭하여 그룹 목록에 사용자 아이디를 추가하세요.
 3. 그룹에서 특정 사용자를 제외하고 싶을 때, **등록된 사용자 목록**에서 해당 사용자 아이디를 **두 번** 클릭하세요.
@@ -331,16 +331,57 @@ st.markdown("""
 with st.expander("**How to use❓**", expanded=False):
     st.markdown(help_text_3, unsafe_allow_html=True)
 
-def get_problem_recommendations_from_api(user_id_list, tier, category_num):
-    api_endpoint = "2022/baekjun/group_rec"
-    params = {
-        "user_id_list": List[str],
-        "tier": float,
-        "category_num": List[int]
-    }
-    response = requests.get(api_endpoint, params=params)
+## Problem Recommendation 함수 정의 ##
 
+# API 엔드포인트
+API_ENDPOINT = "http://localhost:8501/2022/baekjun/group_rec"
+
+def recommend_problems(user_id_list, tier, category_num):
+    # API 호출을 위한 요청 데이터 생성
+    payload = {
+        "user_id_list": user_id_list,
+        "tier": tier,
+        "category_num": category_num
+    }
+
+    # API 호출
+    response = requests.post(API_ENDPOINT, json=payload)
+
+    # 응답 확인
     if response.status_code == 200:
-        return response.json()["recommended_problems"]
+        data = response.json()
+        return data
     else:
+        st.error(f"API 호출 중 오류 발생: {response.status_code}")
         return None
+
+def main():
+    # 사용자 입력 받기
+    user_id_list = st.text_input("사용자 ID 리스트 입력 (콤마로 구분):")
+    user_id_list = user_id_list.split(',') if user_id_list else []  
+
+    # Tier를 int로 입력 받기
+    tier = st.text_input("Tier 선택 (숫자 입력):")
+    tier = int(tier) if tier.isdigit() else None
+    
+    # 각 카테고리에 대한 문제 개수 입력
+    category_num = st.text_input("각 문제 유형별로 추천받을 개수 입력 (콤마로 구분):")
+    category_num = [int(num.strip()) for num in category_num.split(',')] if category_num else []  
+
+    # 문제 추천 버튼
+    if st.button("문제 추천"):
+        if user_id_list and tier and category_num:
+            # 문제 추천 API 호출
+            recommended_problems = recommend_problems(user_id_list, tier, category_num)
+
+            # 결과 표시
+            if recommended_problems:
+                st.success("문제 추천이 완료되었습니다.")
+                st.write("추천된 문제:")
+                st.write(recommended_problems)
+            else:
+                st.error("문제 추천 중 오류가 발생했습니다.")
+
+if __name__ == "__main__":
+    main()
+
