@@ -5,6 +5,7 @@ import streamlit as st
 from matplotlib.patches import RegularPolygon
 import requests
 from dotenv import load_dotenv
+import os
 
 # 모듈 수준에서 session_state 객체 정의
 if "selected_users" not in st.session_state:
@@ -331,13 +332,17 @@ st.markdown("""
 with st.expander("**How to use❓**", expanded=False):
     st.markdown(help_text_3, unsafe_allow_html=True)
 
+st.write("")
+
 ## Problem Recommendation 함수 정의 ##
 
-# API 엔드포인트
-API_ENDPOINT = "http://localhost:8501/2022/baekjun/group_rec"
+# .env 파일 로드
+load_dotenv()
+
+# e 불러오기
+stream_ENV = os.getenv("stream_ENV")
 
 def recommend_problems(user_id_list, tier, category_num):
-    # API 호출을 위한 요청 데이터 생성
     payload = {
         "user_id_list": user_id_list,
         "tier": tier,
@@ -345,7 +350,7 @@ def recommend_problems(user_id_list, tier, category_num):
     }
 
     # API 호출
-    response = requests.post(API_ENDPOINT, json=payload)
+    response = requests.post(stream_ENV, json=payload)
 
     # 응답 확인
     if response.status_code == 200:
@@ -356,22 +361,60 @@ def recommend_problems(user_id_list, tier, category_num):
         return None
 
 def main():
+    tier_mapping = {
+        "Bronze 5": 1,
+        "Bronze 4": 2,
+        "Bronze 3": 3,
+        "Bronze 2": 4,
+        "Bronze 1": 5,
+        "Silver 5": 6,
+        "Silver 4": 7,
+        "Silver 3": 8,
+        "Silver 2": 9,
+        "Silver 1": 10,
+        "Gold 5": 11,
+        "Gold 4": 12,
+        "Gold 3": 13,
+        "Gold 2": 14,
+        "Gold 1": 15,
+        "Platinum 5": 16,
+        "Platinum 4": 17,
+        "Platinum 3": 18,
+        "Platinum 2": 19,
+        "Platinum 1": 20,
+        "Diamond 5": 21,
+        "Diamond 4": 22,
+        "Diamond 3": 23,
+        "Diamond 2": 24,
+        "Diamond 1": 25,
+        "Ruby 5": 26,
+        "Ruby 4": 27,
+        "Ruby 3": 28,
+        "Ruby 2": 29,
+        "Ruby 1": 30,
+        "Master": 31
+    }
+
     # 사용자 입력 받기
-    user_id_list = st.text_input("사용자 ID 리스트 입력 (콤마로 구분):")
+    user_id_list = st.text_input("**사용자 ID를 입력하세요 (ID는 쉼표로 구분)**")
     user_id_list = user_id_list.split(',') if user_id_list else []  
 
     # Tier를 int로 입력 받기
-    tier = st.text_input("Tier 선택 (숫자 입력):")
-    tier = int(tier) if tier.isdigit() else None
-    
+    tier = st.selectbox("**등급을 선택 하세요**", list(tier_mapping.keys()))
+    tier = tier_mapping.get(tier, 1)
+
     # 각 카테고리에 대한 문제 개수 입력
-    category_num = st.text_input("각 문제 유형별로 추천받을 개수 입력 (콤마로 구분):")
-    category_num = [int(num.strip()) for num in category_num.split(',')] if category_num else []  
+    selected_categories = st.multiselect("**카테고리 선택**", ['implementation', 'ds', 'dp', 'graph', 'search', 'string', 'math', 'opt', 'geo', 'adv'])
+    category_num = []
+
+    for category in selected_categories:
+        num = st.text_input(f"**{category}에서 추천 받을 문제 개수를 입력하세요 (숫자만)**", key=f"{category}_num")
+        if num:
+            category_num.append(int(num))
 
     # 문제 추천 버튼
     if st.button("문제 추천"):
         if user_id_list and tier and category_num:
-            # 문제 추천 API 호출
             recommended_problems = recommend_problems(user_id_list, tier, category_num)
 
             # 결과 표시
