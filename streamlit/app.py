@@ -101,7 +101,7 @@ def tier_avg_to_text(avg_tier):
     else:
         return 1.0
 
-csv_path = "/Users/thjeong/Desktop/BOAZ/adv/files/new_users_detail_2.csv"  
+csv_path = "/Users/thjeong/Desktop/BOAZ/adv/files/new_users_detail_3.csv"  
 user_df = pd.read_csv(csv_path)
 
 help_text = """
@@ -123,7 +123,7 @@ if user_search:
         filtered_user = user_df[exact_match]
 
         st.sidebar.write("검색 결과:")
-        st.sidebar.write(filtered_user[['user_rank', 'user_id', 'user_tier']].to_markdown(index=False))
+        st.sidebar.write(filtered_user[['user_id', 'user_tier']].to_markdown(index=False))
 
         st.sidebar.write("")
 
@@ -135,7 +135,7 @@ if user_search:
     # 정확히 일치하는 사용자가 없는 경우
     else:
         st.sidebar.write("검색 결과가 없습니다.")
-        st.sidebar.write(pd.DataFrame({"user_rank": ["❓"], "user_id": [user_search], "user_tier": ["❓"]}).to_markdown(index=False))
+        st.sidebar.write(pd.DataFrame({"user_id": [user_search], "user_tier": ["❓"]}).to_markdown(index=False))
 
         st.sidebar.write("")
 
@@ -268,24 +268,24 @@ if st.session_state["selected_users"]:
                                 
                         # categories와 values 설정. 처음 요소를 마지막에 추가하여 배열 길이 일치시킴
                         categories = ['implementation', 'ds', 'dp', 'graph', 'search', 'string', 'math', 'opt', 'geo', 'adv']
-                        values = user_info[categories].values.flatten()
+                        values = (user_info[categories].values.flatten() + 20.0).tolist()
                         values = [min(val, 100) for val in values]
                         values += [values[0]] 
 
                         # 각 카테고리의 수 만큼 각도 설정
                         angles = np.linspace(0, 2 * np.pi, len(categories), endpoint=False).tolist()
-                        angles += angles[:1] 
+                        angles += angles[:1]  
 
                         # 개인 레이팅에 대한 레이더 차트 그리기(파랑)
                         ax = axs[i, j]
-                        values = (np.log1p(user_info[categories].values) / np.max(np.log1p(user_info[categories].values), axis=0) * 100).flatten().tolist()
-                        values += [values[0]]
                         ax.plot(angles, values, 'o-', linewidth=2, color='blue', alpha=0.75)
 
                         # 그룹 평균 레이팅에 대한 레이더 차트 그리기(빨강)
-                        average_values = (np.log1p(np.mean(selected_user_info[categories].values, axis=0)) / np.max(np.log1p(np.mean(selected_user_info[categories].values, axis=0))) * 100).flatten().tolist()
-                        average_values += [average_values[0]]
+                        average_values = (np.mean(selected_user_info[categories].values, axis=0) + 20.0).tolist()
+                        average_values = [min(val, 100) for val in average_values]
+                        average_values += [average_values[0]]  
                         ax.plot(angles, average_values, 'o-', linewidth=2, color='red', alpha=0.7)
+
                         ax.fill(angles, average_values, alpha=0.25)
 
                         # 각도를 설정할 때, 리스트가 아닌 NumPy 배열로 변환
@@ -298,8 +298,9 @@ if st.session_state["selected_users"]:
                         # 슬라이더로 조절된 평균 등급의 평균 레이팅에 대한 레이더 차트 그리기(초록)
                         adjusted_average_values = np.zeros(len(categories))
                         if group_average_slider != average_tier:
-                            adjusted_average_values = (np.log1p(user_df[user_df['user_tier'] == group_average_text][categories].mean().values) / np.max(np.log1p(user_df[user_df['user_tier'] == group_average_text][categories].mean().values), axis=0) * 100).flatten().tolist()
-                            adjusted_average_values += [adjusted_average_values[0]] 
+                            adjusted_average_values = (user_df[user_df['user_tier'] == group_average_text][categories].mean().values + 20.0).tolist()
+                            adjusted_average_values = [min(val, 100) for val in adjusted_average_values]
+                            adjusted_average_values = np.concatenate((adjusted_average_values, [adjusted_average_values[0]]))
                             ax.plot(angles, adjusted_average_values, 'o-', linewidth=2, color='green', alpha=0.75)
 
                     else:
@@ -310,3 +311,36 @@ if st.session_state["selected_users"]:
 
             # Streamlit에서 그림 표시
             st.pyplot(fig)
+
+st.write("")
+
+help_text_3 = """
+How to use❓
+1. 왼쪽 사이드바의 **사용자 검색**에 백준 아이디를 입력하고 **Enter**를 눌러 검색 후, 사용자 정보를 확인하세요.
+2. 그룹에 등록하고 경우, **사용자 등록** 버튼을 클릭하여 그룹 목록에 사용자 아이디를 추가하세요.
+3. 그룹에서 특정 사용자를 제외하고 싶을 때, **등록된 사용자 목록**에서 해당 사용자 아이디를 **두 번** 클릭하세요.
+"""
+
+# Problem Recommendation 메뉴 추가
+st.markdown("""
+    <div style="display: block; text-align: left; margin-left: 0px;">
+        <h3> 🤔 Problem Recommendation </h3>
+    </div>
+""", unsafe_allow_html=True)
+
+with st.expander("**How to use❓**", expanded=False):
+    st.markdown(help_text_3, unsafe_allow_html=True)
+
+def get_problem_recommendations_from_api(user_id_list, tier, category_num):
+    api_endpoint = "2022/baekjun/group_rec"
+    params = {
+        "user_id_list": List[str],
+        "tier": float,
+        "category_num": List[int]
+    }
+    response = requests.get(api_endpoint, params=params)
+
+    if response.status_code == 200:
+        return response.json()["recommended_problems"]
+    else:
+        return None
