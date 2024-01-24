@@ -6,6 +6,7 @@ from matplotlib.patches import RegularPolygon
 import requests
 from dotenv import load_dotenv
 import os
+import json
 
 # 모듈 수준에서 session_state 객체 정의
 if "selected_users" not in st.session_state:
@@ -336,10 +337,12 @@ st.write("")
 
 ## Problem Recommendation 함수 정의 ##
 
+csv_path_2 = "/Users/thjeong/Desktop/BOAZ/adv/files/problem_detail.csv"  
+
 # .env 파일 로드
 load_dotenv()
 
-# e 불러오기
+# env불러오기
 stream_ENV = os.getenv("stream_ENV")
 
 def recommend_problems(user_id_list, tier, category_num):
@@ -420,11 +423,10 @@ def main():
             # 결과 표시
             if recommended_problems:
                 st.success("문제 추천이 완료되었습니다.")
-                st.write("추천된 문제:")
+
                 st.write(recommended_problems)
             else:
                 st.error("문제 추천 중 오류가 발생했습니다.")
 
 if __name__ == "__main__":
     main()
-
