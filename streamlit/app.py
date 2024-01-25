@@ -318,9 +318,12 @@ if st.session_state["selected_users"]:
 st.write("")
 
 help_text_3 = """
-1. 왼쪽 사이드바의 **사용자 검색**에 백준 아이디를 입력하고 **Enter**를 눌러 검색 후, 사용자 정보를 확인하세요.
-2. 그룹에 등록하고 경우, **사용자 등록** 버튼을 클릭하여 그룹 목록에 사용자 아이디를 추가하세요.
-3. 그룹에서 특정 사용자를 제외하고 싶을 때, **등록된 사용자 목록**에서 해당 사용자 아이디를 **두 번** 클릭하세요.
+1. 사용자 ID를 아래에 입력하세요. 여러 사용자를 입력할 때, 반드시 **쉼표**로 구분해주세요.
+2. 백준 사용자가 아닌 ID를 입력하는 경우, 추천 시 해당 사용자를 제외하고 계산됩니다.
+3. 그룹에서 추천 받고 싶은 문제의 등급을 선택해주세요. 
+4. 추천 받고 싶은 문제 유형의 개수를 각각 입력해주세요. +를 누르면 추천 개수 증가, -를 누르면 감소합니다. 
+5. 문제 추천 버튼을 누르면, 추천 받은 문제에 대한 문제 등급/문제 유형/문제 번호/문제 URL을 반환합니다.
+6. 추천 받은 문제는 데이터프레임 형식으로 csv 파일로 다운로드 가능합니다.
 """
 
 # Problem Recommendation 메뉴 추가
@@ -335,15 +338,14 @@ with st.expander("**How to use❓**", expanded=False):
 
 st.write("")
 
-## Problem Recommendation 함수 정의 ##
-
-csv_path_2 = "/Users/thjeong/Desktop/BOAZ/adv/files/problem_detail.csv"  
-
-# .env 파일 로드
+# .env 파일 로드 및 환경 변수 불러오기
 load_dotenv()
-
-# env불러오기
 stream_ENV = os.getenv("stream_ENV")
+
+# problem_detail.csv 파일 로드
+csv_path_2 = "/Users/thjeong/Desktop/BOAZ/adv/files/problem_detail.csv" 
+problem_df = pd.read_csv(csv_path_2)
+
 
 def recommend_problems(user_id_list, tier, category_num):
     payload = {
@@ -352,10 +354,8 @@ def recommend_problems(user_id_list, tier, category_num):
         "category_num": category_num
     }
 
-    # API 호출
     response = requests.post(stream_ENV, json=payload)
 
-    # 응답 확인
     if response.status_code == 200:
         data = response.json()
         return data
@@ -363,7 +363,49 @@ def recommend_problems(user_id_list, tier, category_num):
         st.error(f"API 호출 중 오류 발생: {response.status_code}")
         return None
 
+def tier_num_to_text(tier_num):
+    tier_mapping = {
+        1: "Bronze 5", 2: "Bronze 4", 3: "Bronze 3", 4: "Bronze 2", 5: "Bronze 1",
+        6: "Silver 5", 7: "Silver 4", 8: "Silver 3", 9: "Silver 2", 10: "Silver 1",
+        11: "Gold 5", 12: "Gold 4", 13: "Gold 3", 14: "Gold 2", 15: "Gold 1",
+        16: "Platinum 5", 17: "Platinum 4", 18: "Platinum 3", 19: "Platinum 2", 20: "Platinum 1",
+        21: "Diamond 5", 22: "Diamond 4", 23: "Diamond 3", 24: "Diamond 2", 25: "Diamond 1",
+        26: "Ruby 5", 27: "Ruby 4", 28: "Ruby 3", 29: "Ruby 2", 30: "Ruby 1",
+        31: "Master"
+    }
+    return tier_mapping.get(tier_num, "Unknown Tier")
+
+def create_dataframe(api_response, tier):
+    categories = ["implementation", "ds", "dp", "graph", "search", "string", "math", "opt", "geo", "adv"]
+    data = []
+
+    tier_text = tier_num_to_text(tier)  
+
+    for category, problems in api_response.items():
+        category_name = categories[int(category)]
+
+        for problem_id in problems:
+            problem_info = problem_df[
+                (problem_df['problem_id'] == problem_id) & (problem_df['tag_key'] == category_name)
+            ]
+
+            if not problem_info.empty:
+                problem_title = problem_info['problem_title'].iloc[0]
+                problem_url = f"https://www.acmicpc.net/problem/{problem_id}"
+                data.append({
+                    "문제 등급": tier_text,
+                    "문제 유형": category_name,
+                    "문제 번호": problem_id,
+                    "문제 제목": problem_title,
+                    "문제 URL": problem_url
+                })
+
+    return pd.DataFrame(data)
+
 def main():
+    user_ids = st.text_input("**사용자 ID를 입력하세요 (입력한 사용자가 여러명일 땐, 쉼표로 구분)**")
+    user_id_list = [user_id.strip() for user_id in user_ids.split(',') if user_id]
+
     tier_mapping = {
         "Bronze 5": 1,
         "Bronze 4": 2,
@@ -397,36 +439,34 @@ def main():
         "Ruby 1": 30,
         "Master": 31
     }
+    # Tier 입력 받기
+    tier = st.selectbox("**등급을 선택하세요**", list(tier_mapping.keys()))
+    tier = tier_mapping[tier]
 
-    # 사용자 입력 받기
-    user_id_list = st.text_input("**사용자 ID를 입력하세요 (ID는 쉼표로 구분)**")
-    user_id_list = user_id_list.split(',') if user_id_list else []  
+    # 카테고리 이름 리스트
+    categories = ["implementation", "ds", "dp", "graph", "search", "string", "math", "opt", "geo", "adv"]
 
-    # Tier를 int로 입력 받기
-    tier = st.selectbox("**등급을 선택 하세요**", list(tier_mapping.keys()))
-    tier = tier_mapping.get(tier, 1)
-
-    # 각 카테고리에 대한 문제 개수 입력
-    selected_categories = st.multiselect("**카테고리 선택**", ['implementation', 'ds', 'dp', 'graph', 'search', 'string', 'math', 'opt', 'geo', 'adv'])
+    # 카테고리별 문제 개수 입력 받기
     category_num = []
-
-    for category in selected_categories:
-        num = st.text_input(f"**{category}에서 추천 받을 문제 개수를 입력하세요 (숫자만)**", key=f"{category}_num")
-        if num:
-            category_num.append(int(num))
+    for i, category in enumerate(categories):  
+        num = st.number_input(f"**{category} 문제 개수**", min_value=0, max_value=10, value=0)
+        category_num.append(num)
 
     # 문제 추천 버튼
     if st.button("문제 추천"):
-        if user_id_list and tier and category_num:
-            recommended_problems = recommend_problems(user_id_list, tier, category_num)
+        api_response = recommend_problems(user_id_list, tier, category_num)
 
-            # 결과 표시
-            if recommended_problems:
-                st.success("문제 추천이 완료되었습니다.")
+        # 결과 처리 및 표시
+        if api_response:
+            df = create_dataframe(api_response, tier)
 
-                st.write(recommended_problems)
-            else:
-                st.error("문제 추천 중 오류가 발생했습니다.")
+            # DataFrame을 HTML로 변환 (인덱스 숨김)
+            html = df.to_html(index=False)
+
+            # HTML을 Streamlit에 표시
+            st.markdown(html, unsafe_allow_html=True)
+        else:
+            st.error("문제 추천에 실패했습니다.")
 
 if __name__ == "__main__":
-    main()
+    main()    
