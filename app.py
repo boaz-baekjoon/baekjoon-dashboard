@@ -3,111 +3,18 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import streamlit as st
 from matplotlib.patches import RegularPolygon
-import requests
-from dotenv import load_dotenv
-import os
 import json
+
+from load_data import *
+from utils.mapping import *
+from utils.request import *
+from utils.make_df import *
 
 # 모듈 수준에서 session_state 객체 정의
 if "selected_users" not in st.session_state:
     st.session_state["selected_users"] = []
 
-# 등급을 숫자로 변환하는 함수
-def tier_to_num(tier):
-    division = 1
-    for char in tier[::-1]:
-        if char.isdigit():
-            division = int(char)
-            break
-    
-    if tier.startswith("Bronze"):
-        return 6.0 - division
-    elif tier.startswith("Silver"):
-        return 11.0 - division
-    elif tier.startswith("Gold"):
-        return 16.0 - division
-    elif tier.startswith("Platinum"):
-        return 21.0 - division
-    elif tier.startswith("Diamond"):
-        return 26.0 - division
-    elif tier.startswith("Ruby"):
-        return 31.0 - division
-    elif tier == "Master":
-        return 31.0
-    else:
-        return 1.0
-
-# 등급 범위에 따라 텍스트로 변환하는 함수 정의
-def tier_avg_to_text(avg_tier):
-    if avg_tier < 2.0:
-        return "Bronze 5"
-    elif 2.0 <= avg_tier < 3.0:
-        return "Bronze 4"
-    elif 3.0 <= avg_tier < 4.0:
-        return "Bronze 3"
-    elif 4.0 <= avg_tier < 5.0:
-        return "Bronze 2"
-    elif 5.0 <= avg_tier < 6.0:
-        return "Bronze 1"
-    elif 6.0 <= avg_tier < 7.0:
-        return "Silver 5"
-    elif 7.0 <= avg_tier < 8.0:
-        return "Silver 4"
-    elif 8.0 <= avg_tier < 9.0:
-        return "Silver 3"
-    elif 9.0 <= avg_tier < 10.0:
-        return "Silver 2"
-    elif 10.0 <= avg_tier < 11.0:
-        return "Silver 1"
-    elif 11.0 <= avg_tier < 12.0:
-        return "Gold 5"
-    elif 12.0 <= avg_tier < 13.0:
-        return "Gold 4"
-    elif 13.0 <= avg_tier < 14.0:
-        return "Gold 3"
-    elif 14.0 <= avg_tier < 15.0:
-        return "Gold 2"
-    elif 15.0 <= avg_tier < 16.0:
-        return "Gold 1"
-    elif 16.0 <= avg_tier < 17.0:
-        return "Platinum 5"
-    elif 17.0 <= avg_tier < 18.0:
-        return "Platinum 4"
-    elif 18.0 <= avg_tier < 19.0:
-        return "Platinum 3"
-    elif 19.0 <= avg_tier < 20.0:
-        return "Platinum 2"
-    elif 20.0 <= avg_tier < 21.0:
-        return "Platinum 1"
-    elif 21.0 <= avg_tier < 22.0:
-        return "Diamond 5"
-    elif 22.0 <= avg_tier < 23.0:
-        return "Diamond 4"
-    elif 23.0 <= avg_tier < 24.0:
-        return "Diamond 3"
-    elif 24.0 <= avg_tier < 25.0:
-        return "Diamond 2"
-    elif 25.0 <= avg_tier < 26.0:
-        return "Diamond 1"
-    elif 26.0 <= avg_tier < 27.0:
-        return "Ruby 5"
-    elif 27.0 <= avg_tier < 28.0:
-        return "Ruby 4"
-    elif 28.0 <= avg_tier < 29.0:
-        return "Ruby 3"
-    elif 29.0 <= avg_tier < 30.0:
-        return "Ruby 2"
-    elif 30.0 <= avg_tier < 31.0:
-        return "Ruby 1"
-    elif avg_tier >= 31.0:
-        return "Master"
-    else:
-        return 1.0
-
-csv_path = "/Users/thjeong/Desktop/BOAZ/adv/files/new_users_detail_3.csv"  
-user_df = pd.read_csv(csv_path)
-
-help_text = """
+side_help_text = """
 How to use❓
 1. 왼쪽 사이드바의 **사용자 검색**에 백준 아이디를 입력하고 **Enter**를 눌러 검색 후, 사용자 정보를 확인하세요.
 2. 그룹에 등록하고 경우, **사용자 등록** 버튼을 클릭하여 그룹 목록에 사용자 아이디를 추가하세요.
@@ -115,7 +22,7 @@ How to use❓
 """
 
 # 사용자 검색창을 사이드바에 추가
-user_search = st.sidebar.text_input("### **사용자 검색**", key="user_search", help=help_text)
+user_search = st.sidebar.text_input("### **사용자 검색**", key="user_search", help=side_help_text)
 
 # 사용자가 검색어를 입력한 경우
 if user_search:
@@ -167,7 +74,7 @@ st.markdown("<div style='text-align: left; margin-left: 30px;'> ⭐ <span style=
 st.write("")
 st.write("")
 
-help_text_2 = """
+check_tier_help_text = """
 1. **Check Baekjoon Tier** 메뉴 아래에 **그룹 목록**에서 조회할 유저를 선택하세요.
 2. 조회할 유저를 선택하면(1), 그룹의 백준 **평균 등급**이 아래에 **빨간색 텍스트**로 표시돼요.
 3. 조회할 유저를 선택하면(2), **카테고리별** 개인 레이팅 및 그룹 평균 레이팅을 시각화해요.
@@ -185,7 +92,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 with st.expander("**How to use❓**", expanded=False):
-    st.markdown(help_text_2, unsafe_allow_html=True)
+    st.markdown(check_tier_help_text, unsafe_allow_html=True)
 
 st.sidebar.write("")
 st.sidebar.write("")
@@ -317,7 +224,7 @@ if st.session_state["selected_users"]:
 
 st.write("")
 
-help_text_3 = """
+group_rec_help_text = """
 1. 사용자 ID를 아래에 입력하세요. 여러 사용자를 입력할 때, 반드시 **쉼표**로 구분해주세요.
 2. 백준 사용자가 아닌 ID를 입력하는 경우, 추천 시 해당 사용자를 제외하고 계산됩니다.
 3. 그룹에서 추천 받고 싶은 문제의 등급을 선택해주세요. 
@@ -334,73 +241,9 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 with st.expander("**How to use❓**", expanded=False):
-    st.markdown(help_text_3, unsafe_allow_html=True)
+    st.markdown(group_rec_help_text, unsafe_allow_html=True)
 
 st.write("")
-
-# .env 파일 로드 및 환경 변수 불러오기
-load_dotenv()
-stream_ENV = os.getenv("stream_ENV")
-
-# problem_detail.csv 파일 로드
-csv_path_2 = "/Users/thjeong/Desktop/BOAZ/adv/files/problem_detail.csv" 
-problem_df = pd.read_csv(csv_path_2)
-
-
-def recommend_problems(user_id_list, tier, category_num):
-    payload = {
-        "user_id_list": user_id_list,
-        "tier": tier,
-        "category_num": category_num
-    }
-
-    response = requests.post(stream_ENV, json=payload)
-
-    if response.status_code == 200:
-        data = response.json()
-        return data
-    else:
-        st.error(f"API 호출 중 오류 발생: {response.status_code}")
-        return None
-
-def tier_num_to_text(tier_num):
-    tier_mapping = {
-        1: "Bronze 5", 2: "Bronze 4", 3: "Bronze 3", 4: "Bronze 2", 5: "Bronze 1",
-        6: "Silver 5", 7: "Silver 4", 8: "Silver 3", 9: "Silver 2", 10: "Silver 1",
-        11: "Gold 5", 12: "Gold 4", 13: "Gold 3", 14: "Gold 2", 15: "Gold 1",
-        16: "Platinum 5", 17: "Platinum 4", 18: "Platinum 3", 19: "Platinum 2", 20: "Platinum 1",
-        21: "Diamond 5", 22: "Diamond 4", 23: "Diamond 3", 24: "Diamond 2", 25: "Diamond 1",
-        26: "Ruby 5", 27: "Ruby 4", 28: "Ruby 3", 29: "Ruby 2", 30: "Ruby 1",
-        31: "Master"
-    }
-    return tier_mapping.get(tier_num, "Unknown Tier")
-
-def create_dataframe(api_response, tier):
-    categories = ["implementation", "ds", "dp", "graph", "search", "string", "math", "opt", "geo", "adv"]
-    data = []
-
-    tier_text = tier_num_to_text(tier)  
-
-    for category, problems in api_response.items():
-        category_name = categories[int(category)]
-
-        for problem_id in problems:
-            problem_info = problem_df[
-                (problem_df['problem_id'] == problem_id) & (problem_df['tag_key'] == category_name)
-            ]
-
-            if not problem_info.empty:
-                problem_title = problem_info['problem_title'].iloc[0]
-                problem_url = f"https://www.acmicpc.net/problem/{problem_id}"
-                data.append({
-                    "문제 등급": tier_text,
-                    "문제 유형": category_name,
-                    "문제 번호": problem_id,
-                    "문제 제목": problem_title,
-                    "문제 URL": problem_url
-                })
-
-    return pd.DataFrame(data)
 
 def main():
     user_ids = st.text_input("**사용자 ID를 입력하세요 (입력한 사용자가 여러명일 땐, 쉼표로 구분)**")
